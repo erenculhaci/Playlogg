@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Playlogg{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js" defer></script>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        body {
+            background: url('https://i.hizliresim.com/skotemy.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: #e0e0e0;
+            font-family: 'Arial', sans-serif;
+        }
+        .navbar {
+            background: linear-gradient(90deg, #6a0dad, #4b0082);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease-in-out;
+        }
+        .navbar:hover {
+            transform: scale(1.02);
+        }
+        .nav-link {
+            transition: color 0.3s ease-in-out;
+        }
+        .nav-link:hover {
+            color: #ffccff;
+        }
+        .btn {
+            background: #6a0dad;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            background: #8a2be2;
+            transform: scale(1.1);
+        }
+        footer {
+            background: linear-gradient(90deg, #4b0082, #6a0dad);
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="/" class="text-white font-bold text-2xl tracking-wide">Playlogg <i class="fas fa-gamepad"></i></a>
+            <div class="space-x-6 text-lg">
+                <a href="/" class="nav-link text-white">Home</a>
+                {% if user.is_authenticated %}
+                    <a href="/add_game/" class="nav-link text-white">Add Game</a>
+                    <a href="/profile/" class="nav-link text-white">Profile</a>
+                    <a href="/logout/" class="btn text-white">Logout</a>
+                {% else %}
+                    <a href="/login/" class="btn text-white">Login</a>
+                    <a href="/register/" class="btn text-white">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto p-6 flex-grow">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="p-4 text-center text-white">
+        <p>&copy; 2025 Playlogg | Keep Track of Your Games <i class="fas fa-gamepad"></i></p>
+    </footer>
+</body>
+</html>

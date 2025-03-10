@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Game - {{ game.name }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-6">
+    <div class="bg-gray-800 shadow-lg rounded-lg p-6">
+        <h1 class="text-3xl font-bold text-white mb-4">Edit Game</h1>
+
+        <form action="{% url 'edit_game' game.id %}" method="POST">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label for="name" class="text-white">Game Name</label>
+                <input type="text" name="name" id="name" value="{{ game.name }}" class="w-full p-2 border border-gray-600 rounded-lg text-white bg-transparent focus:ring-2 focus:ring-purple-500 placeholder-gray-400">
+            </div>
+
+            <div class="mb-4">
+                <label for="description" class="text-white">Description</label>
+                <textarea name="description" id="description" class="w-full p-2 border border-gray-600 rounded-lg text-white bg-transparent focus:ring-2 focus:ring-purple-500 placeholder-gray-400">{{ game.description }}</textarea>
+            </div>
+
+            <div class="mb-4">
+                <label for="release_date" class="text-white">Release Date</label>
+                <input type="date" name="release_date" id="release_date" value="{{ game.release_date }}" class="w-full p-2 border border-gray-600 rounded-lg text-white bg-transparent focus:ring-2 focus:ring-purple-500 placeholder-gray-400">
+            </div>
+
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-lg mt-4 hover:bg-blue-600 transform transition-all hover:scale-105">Save Changes</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

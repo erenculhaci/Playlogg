@@ -1,0 +1,213 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.decorators import login_required
+from .models import Game, Comment, Profile
+from django.contrib import messages
+from django.urls import reverse
+from django.http import HttpResponseRedirect
+from django.contrib.auth.decorators import login_required
+
+
+
+
+# Home page view
+def home(request):
+    games = Game.objects.all()
+    return render(request, 'core/home.html', {'games': games})
+
+def login_redirect(request):
+    return HttpResponseRedirect(reverse('login') + '?next=' + request.path)
+
+# Register view
+def register(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, 'Registration successful!')
+            return redirect('home')
+    else:
+        form = UserCreationForm()
+    return render(request, 'core/register.html', {'form': form})
+# Login view
+def user_login(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            return redirect('home')  # Make sure 'home' is a valid URL in your URLs
+        else:
+            messages.error(request, 'Invalid login credentials. Please try again.')
+    else:
+        form = AuthenticationForm()
+
+    return render(request, 'core/login.html', {'form': form})
+
+
+# User profile view
+@login_required
+def user_profile(request):
+    user_profile, created = Profile.objects.get_or_create(user=request.user)
+    liked_games = get_liked_games(request.user)  # Get the liked games for the current user
+    return render(request, 'core/profile.html', {'profile': user_profile, 'liked_games': liked_games})
+
+
+# Add a game view
+@login_required
+def add_game(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+        release_date = request.POST.get('release_date')
+
+        # Create the game and assign the logged-in user to 'added_by'
+        game = Game.objects.create(
+            name=name,
+            description=description,
+            release_date=release_date,
+            added_by=request.user
+        )
+        return redirect('home')
+    return render(request, 'core/add_game.html')
+
+@login_required
+def edit_game(request, game_id):
+    game = get_object_or_404(Game, id=game_id)
+
+    # Ensure the logged-in user is the one who added the game
+    if game.added_by != request.user:
+        messages.error(request, "You do not have permission to edit this game.")
+        return redirect('game_detail', game_id=game.id)
+
+    if request.method == 'POST':
+        # Get the updated game details from the form
+        game.name = request.POST.get('name')
+        game.description = request.POST.get('description')
+        game.release_date = request.POST.get('release_date')
+
+        game.save()
+        messages.success(request, 'Game details updated successfully!')
+        return redirect('game_detail', game_id=game.id)
+
+    return render(request, 'core/edit_game.html', {'game': game})
+
+@login_required
+def delete_game(request, game_id):
+    game = get_object_or_404(Game, id=game_id)
+
+    # Ensure that the logged-in user added the game
+    if game.added_by == request.user:
+        game.delete()
+        messages.success(request, 'Game deleted successfully.')
+    else:
+        messages.error(request, 'You do not have permission to delete this game.')
+
+    return redirect('home')
+
+@login_required
+def like_game(request, game_id):
+    game = get_object_or_404(Game, id=game_id)
+
+    # Check if the user already liked the game
+    if request.user in game.liked_by.all():
+        # If the user already liked the game, remove their like (unlike it)
+        game.liked_by.remove(request.user)
+        game.likes -= 1
+    else:
+        # If the user hasn't liked the game yet, add their like
+        game.liked_by.add(request.user)
+        game.likes += 1
+
+    game.save()
+    return redirect('game_detail', game_id=game.id)
+
+
+@login_required
+def unfavorite_game(request, game_id):
+    # Get the game object
+    game = get_object_or_404(Game, id=game_id)
+
+    # Check if the game is in the user's liked list
+    if game.liked_by.filter(id=request.user.id).exists():
+        # Remove the user from the liked_by field
+        game.liked_by.remove(request.user)
+
+    # Redirect back to the profile page
+    return redirect('profile')
+
+
+def get_liked_games(user):
+    return Game.objects.filter(liked_by=user)
+
+
+@login_required
+def add_comment(request, game_id):
+    game = get_object_or_404(Game, id=game_id)
+
+    user_comments_count = Comment.objects.filter(user=request.user, game=game).count()
+    if user_comments_count >= 5:
+        messages.error(request, "You can only have up to 5 comments. Delete one to add another.")
+        return redirect('game_detail', game_id=game.id)
+
+    if request.method == 'POST':
+        text = request.POST.get('comment')
+        parent_id = request.POST.get('parent_id')
+        parent_comment = Comment.objects.get(id=parent_id) if parent_id else None
+
+        Comment.objects.create(game=game, user=request.user, text=text, parent=parent_comment)
+        messages.success(request, "Comment added successfully!")
+        return redirect('game_detail', game_id=game.id)
+
+    return redirect('game_detail', game_id=game.id)
+
+
+@login_required
+def like_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+
+    if request.user in comment.likes.all():
+        comment.likes.remove(request.user)
+    else:
+        comment.likes.add(request.user)
+
+    return redirect('game_detail', game_id=comment.game.id)
+
+
+# Edit comment view
+@login_required
+def edit_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    if request.user != comment.user:
+        return redirect('home')
+
+    if request.method == 'POST':
+        comment.text = request.POST.get('comment')
+        comment.save()
+        return redirect('game_detail', game_id=comment.game.id)
+
+    return render(request, 'core/edit_comment.html', {'comment': comment})
+
+
+# Delete comment view
+@login_required
+def delete_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    if request.user != comment.user:
+        return redirect('home')
+
+    comment.delete()
+    return redirect('game_detail', game_id=comment.game.id)
+
+
+# Game detail view
+def game_detail(request, game_id):
+    game = get_object_or_404(Game, id=game_id)
+    comments = game.comments.filter(parent__isnull=True).order_by('-created_at')
+    return render(request, 'core/game_detail.html', {'game': game, 'comments': comments})
+
+def user_logout(request):
+    logout(request)
+    return redirect('home')
