@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ game.name }} - Playlogg{% endblock %}
+
+{% block content %}
+    <div class="container mx-auto p-6">
+        <!-- Game details section -->
+        <div class="bg-gray-800 shadow-lg rounded-lg p-6 mb-8 transform transition-all hover:scale-105 relative">
+            {% if game.added_by == user %}
+                <!-- Edit and Delete buttons positioned inside the card -->
+                <div class="absolute top-4 right-4 space-x-2">
+                    <a href="{% url 'delete_game' game.id %}" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transform transition-all hover:scale-105">
+                        <i class="fas fa-trash-alt"></i> <!-- Delete icon for game -->
+                    </a>
+                    <a href="{% url 'edit_game' game.id %}" class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transform transition-all hover:scale-105">
+                        <i class="fas fa-edit"></i> <!-- Edit icon for game -->
+                    </a>
+                </div>
+            {% endif %}
+
+            <h1 class="text-3xl font-bold text-white">{{ game.name }}</h1>
+            <p class="text-sm text-gray-400">Release Date: {{ game.release_date }}</p>
+            <p class="mt-4 text-lg text-gray-300">{{ game.description }}</p>
+            <div class="mt-6 flex items-center justify-between">
+                <div>
+                    <span class="text-xl font-semibold text-gray-300">Favorited by {{ game.liked_by.count }} people</span>
+                </div>
+                <div>
+                    <!-- Like/Unlike button with icons -->
+                    {% if user in game.liked_by.all %}
+                        <a href="{% url 'like_game' game.id %}" class="text-red-500 hover:text-red-600 transform transition-all hover:scale-110">
+                            <i class="fas fa-heart"></i> <!-- Unlike icon -->
+                        </a>
+                    {% else %}
+                        <a href="{% url 'like_game' game.id %}" class="text-blue-500 hover:text-blue-600 transform transition-all hover:scale-110">
+                            <i class="far fa-heart"></i> <!-- Like icon -->
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Comments section -->
+        <div class="bg-gray-800 shadow-lg rounded-lg p-6 mb-8 transform transition-all hover:scale-105">
+            <h2 class="text-2xl font-semibold text-white mb-4">Comments</h2>
+
+            {% if comments %}
+                <div class="space-y-4">
+                    {% for comment in comments %}
+                        <div class="border-b pb-4">
+                            <p class="font-semibold text-white">{{ comment.user.username }} says:</p>
+                            <p class="text-gray-300">{{ comment.text }}</p>
+                            <p class="text-sm text-gray-400">Posted on {{ comment.created_at|date:"F j, Y, H:i" }}</p>
+                            <p class="text-sm text-gray-400">Likes: {{ comment.likes.count }}</p>
+                            <a href="{% url 'like_comment' comment.id %}" class="text-blue-500 hover:text-blue-600 transform transition-all hover:scale-110">
+                                {% if user in comment.likes.all %}
+                                    <i class="fas fa-thumbs-up"></i> <!-- Unlike icon -->
+                                {% else %}
+                                    <i class="far fa-thumbs-up"></i> <!-- Like icon -->
+                                {% endif %}
+                            </a>
+
+                            {% if comment.user == request.user %}
+                                <div class="mt-2 space-x-2">
+                                    <a href="{% url 'edit_comment' comment.id %}" class="text-blue-500 hover:scale-110 transform transition-all">
+                                        <i class="fas fa-edit"></i> <!-- Edit icon -->
+                                    </a>
+                                    <a href="{% url 'delete_comment' comment.id %}" class="text-red-500 hover:scale-110 transform transition-all">
+                                        <i class="fas fa-trash-alt"></i> <!-- Delete icon -->
+                                    </a>
+                                </div>
+                            {% endif %}
+
+                            <!-- Reply form -->
+                            <form action="{% url 'add_comment' game.id %}" method="post" class="mt-2">
+                                {% csrf_token %}
+                                <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                                <textarea name="comment" class="w-full p-2 border border-gray-600 rounded-lg text-white bg-transparent focus:ring-2 focus:ring-purple-500 placeholder-gray-400" placeholder="Reply here..."></textarea>
+                                <button type="submit" class="bg-gray-500 text-white px-3 py-1 rounded-lg mt-2 hover:bg-gray-600 transform transition-all hover:scale-105">Reply</button>
+                            </form>
+
+                            <!-- Display replies -->
+                            {% for reply in comment.replies.all %}
+                                <div class="ml-6 mt-2 border-l pl-4">
+                                    <p class="font-semibold text-white">{{ reply.user.username }} replies:</p>
+                                    <p class="text-gray-300">{{ reply.text }}</p>
+                                    <p class="text-sm text-gray-400">Likes: {{ reply.likes.count }}</p>
+                                    <a href="{% url 'like_comment' reply.id %}" class="text-blue-500 hover:text-blue-600 transform transition-all hover:scale-110">
+                                        {% if user in reply.likes.all %}
+                                            <i class="fas fa-thumbs-up"></i> <!-- Unlike icon -->
+                                        {% else %}
+                                            <i class="far fa-thumbs-up"></i> <!-- Like icon -->
+                                        {% endif %}
+                                    </a>
+
+                                    <!-- Show delete button only if the logged-in user is the author of the reply -->
+                                    {% if reply.user == request.user %}
+                                        <a href="{% url 'delete_comment' reply.id %}" class="text-red-500 hover:underline ml-2">
+                                            <i class="fas fa-trash-alt"></i> <!-- Delete icon for reply -->
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-white">No comments yet. Be the first to comment!</p>
+            {% endif %}
+        </div>
+
+        <!-- Add a new comment -->
+        <div class="bg-gray-800 shadow-lg rounded-lg p-6 mb-8 transform transition-all hover:scale-105">
+            <h2 class="text-2xl font-semibold text-white mb-4">Add a Comment</h2>
+            <form action="{% url 'add_comment' game.id %}" method="post">
+                {% csrf_token %}
+                <textarea name="comment" class="w-full p-2 border border-gray-600 rounded-lg text-white bg-transparent focus:ring-2 focus:ring-purple-500 placeholder-gray-400" placeholder="Write your comment here"></textarea>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-lg mt-4 hover:bg-blue-600 transform transition-all hover:scale-105">Add Comment</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}

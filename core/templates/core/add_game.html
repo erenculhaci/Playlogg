@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Game - Playlogg{% endblock %}
+
+{% block content %}
+    <div class="flex justify-center items-center min-h-screen">
+        <div class="w-full max-w-2xl p-8 bg-gray-800 rounded-lg shadow-xl transform transition-all hover:scale-105">
+            <h1 class="text-4xl font-bold text-center text-white mb-6">Add a New Game</h1>
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                <div class="space-y-2">
+                    <label for="name" class="text-lg font-semibold text-white">Game Name:</label>
+                    <input type="text" name="name" id="name" class="w-full p-3 text-white bg-transparent border-2 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all" placeholder="Enter the game name" required>
+                </div>
+
+                <div class="space-y-2">
+                    <label for="description" class="text-lg font-semibold text-white">Game Description:</label>
+                    <textarea name="description" id="description" class="w-full p-3 text-white bg-transparent border-2 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all" rows="4" placeholder="Describe the game" required></textarea>
+                </div>
+
+                <div class="space-y-2">
+                    <label for="release_date" class="text-lg font-semibold text-white">Release Date:</label>
+                    <input type="date" name="release_date" id="release_date" class="w-full p-3 text-white bg-transparent border-2 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all" required>
+                </div>
+
+                <div class="flex justify-center">
+                    <!-- Minimal + button with smooth transition -->
+                    <button type="submit" class="w-12 h-12 flex justify-center items-center text-white font-bold text-3xl bg-purple-600 rounded-full shadow-lg hover:bg-purple-700 focus:outline-none transform transition-all hover:scale-110">
+                        +
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
