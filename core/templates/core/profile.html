@@ -17,7 +17,6 @@
                             </h2>
                             <p class="text-sm text-gray-300 mt-2">{{ game.description|slice:":120" }}...</p>
 
-                            <!-- Minimal Unfavorite icon button with matching theme -->
                             <form action="{% url 'unfavorite_game' game.id %}" method="post" class="mt-4">
                                 {% csrf_token %}
                                 <button type="submit" class="text-purple-500 hover:text-purple-600 text-2xl">
@@ -29,6 +28,26 @@
                         <p class="text-gray-400">No liked games yet.</p>
                     {% endfor %}
                 </div>
+            </div>
+
+            <div class="mt-6">
+                <h3 class="text-2xl font-semibold text-white mb-4">Recent Logs</h3>
+                <div class="space-y-4">
+                    {% for log in logs %}
+                        <div class="bg-purple-900 text-white p-6 rounded-lg shadow-md">
+                            <p>{{ log.game.name }} - Status: {{ log.status }}</p>
+                            <p>{{ log.notes|slice:":120" }}...</p>
+                        </div>
+                    {% empty %}
+                        <p class="text-gray-400">No logs yet.</p>
+                    {% endfor %}
+                </div>
+
+                {% if logs %}
+                    <a href="{{ all_logs_url }}" class="text-purple-500 hover:text-purple-600 text-xl mt-4 inline-block">
+                        View all logs
+                    </a>
+                {% endif %}
             </div>
 
             <div class="mt-6 space-x-4">

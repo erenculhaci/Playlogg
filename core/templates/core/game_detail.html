@@ -40,6 +40,52 @@
             </div>
         </div>
 
+        <!-- Log section -->
+        <div class="bg-gray-800 shadow-lg rounded-lg p-6 mb-8 transform transition-all hover:scale-105">
+            <h2 class="text-2xl font-semibold text-white mb-4">Game Logs</h2>
+
+            <!-- Log Add Button -->
+            {% if user %}
+                <a href="{% url 'add_log' game.id %}" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transform transition-all hover:scale-105 mb-4">
+                    <i class="fas fa-plus"></i>
+                </a>
+            {% endif %}
+
+            {% if logs_with_notes %}
+                <div class="space-y-4">
+                    {% for log in logs_with_notes.all %}
+                        <div class="border-b pb-4">
+                            <p class="font-semibold text-white">{{ log.user.username }}'s Log:</p>
+                            <p class="text-gray-300">Status: {{ log.get_status_display }}</p>
+                            {% if log.notes %}
+                                <p class="text-gray-300">Notes: {{ log.notes }}</p>
+                            {% endif %}
+                            {% if log.rating %}
+                                <p class="text-gray-300">Rating: {{ log.rating }}/10</p>
+                            {% endif %}
+                            {% if log.hours_played %}
+                                <p class="text-gray-300">Hours Played: {{ log.hours_played }}</p>
+                            {% endif %}
+                            <p class="text-sm text-gray-400">Logged on {{ log.created_at|date:"F j, Y, H:i" }}</p>
+
+                            {% if log.user == request.user %}
+                                <div class="mt-2 space-x-2">
+                                    <a href="{% url 'edit_log' log.id %}" class="text-blue-500 hover:scale-110 transform transition-all">
+                                        <i class="fas fa-edit"></i> <!-- Edit icon -->
+                                    </a>
+                                    <a href="{% url 'delete_log' log.id %}" class="text-red-500 hover:scale-110 transform transition-all">
+                                        <i class="fas fa-trash-alt"></i> <!-- Delete icon -->
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-white">No logs yet. Be the first to add a log!</p>
+            {% endif %}
+        </div>
+
         <!-- Comments section -->
         <div class="bg-gray-800 shadow-lg rounded-lg p-6 mb-8 transform transition-all hover:scale-105">
             <h2 class="text-2xl font-semibold text-white mb-4">Comments</h2>

@@ -47,6 +47,44 @@
             background: linear-gradient(90deg, #4b0082, #6a0dad);
             margin-top: auto;
         }
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: -250px;
+            width: 250px;
+            height: 100%;
+            background: #4b0082;
+            transition: right 0.3s ease;
+            z-index: 1000;
+        }
+        .sidebar.open {
+            right: 0;
+        }
+        .sidebar a {
+            display: block;
+            padding: 15px;
+            color: #fff;
+            text-decoration: none;
+            border-bottom: 1px solid #6a0dad;
+        }
+        .sidebar a:hover {
+            background-color: #6a0dad;
+        }
+        .hamburger {
+            display: none;
+            font-size: 30px;
+            color: #fff;
+        }
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .navbar .space-x-6 {
+                display: none;
+            }
+            .hamburger {
+                display: block;
+            }
+        }
     </style>
 </head>
 <body>
@@ -65,8 +103,22 @@
                     <a href="/register/" class="btn text-white">Register</a>
                 {% endif %}
             </div>
+            <i class="hamburger fas fa-bars" id="hamburger"></i>
         </div>
     </nav>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <a href="/">Home</a>
+        {% if user.is_authenticated %}
+            <a href="/add_game/">Add Game</a>
+            <a href="/profile/">Profile</a>
+            <a href="/logout/">Logout</a>
+        {% else %}
+            <a href="/login/">Login</a>
+            <a href="/register/">Register</a>
+        {% endif %}
+    </div>
 
     <!-- Main Content -->
     <div class="container mx-auto p-6 flex-grow">
@@ -77,5 +129,14 @@
     <footer class="p-4 text-center text-white">
         <p>&copy; 2025 Playlogg | Keep Track of Your Games <i class="fas fa-gamepad"></i></p>
     </footer>
+
+    <script>
+        const hamburger = document.getElementById('hamburger');
+        const sidebar = document.getElementById('sidebar');
+
+        hamburger.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+    </script>
 </body>
 </html>

@@ -18,5 +18,9 @@ urlpatterns = [
     path('game_detail/<int:game_id>/', views.game_detail, name='game_detail'),
     path('logout/', views.user_logout, name='logout'),
     path('like_comment/<int:comment_id>/', views.like_comment, name='like_comment'),
+    path('game/<int:game_id>/add_log/', views.add_log, name='add_log'),
+    path('log/<int:log_id>/edit/', views.edit_log, name='edit_log'),
+    path('log/<int:log_id>/delete/', views.delete_log, name='delete_log'),
+    path('user/<int:user_id>/logs/', views.all_logs, name='all_logs'),  # Yeni URL
 
 ]

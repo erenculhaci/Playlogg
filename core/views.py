@@ -2,11 +2,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
-from .models import Game, Comment, Profile
+from .models import Game, Comment, Profile, GameLog, User
+from .forms import GameLogForm
 from django.contrib import messages
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 
 
 
@@ -47,12 +49,27 @@ def user_login(request):
     return render(request, 'core/login.html', {'form': form})
 
 
-# User profile view
 @login_required
 def user_profile(request):
     user_profile, created = Profile.objects.get_or_create(user=request.user)
-    liked_games = get_liked_games(request.user)  # Get the liked games for the current user
-    return render(request, 'core/profile.html', {'profile': user_profile, 'liked_games': liked_games})
+    liked_games = get_liked_games(request.user)
+
+    # Loglar ve status filtreleme
+    status_filter = request.GET.get('status', None)  # URL üzerinden status parametresini alıyoruz
+    if status_filter:
+        logs = get_games_by_status(request.user, status=status_filter)
+    else:
+        logs = GameLog.objects.filter(user=request.user).order_by('-created_at')[:4]  # Son 4 logu al
+
+    # Tüm logları görmek için link
+    all_logs_url = reverse('all_logs', kwargs={'user_id': request.user.id})
+
+    return render(request, 'core/profile.html', {
+        'profile': user_profile,
+        'liked_games': liked_games,
+        'logs': logs,
+        'all_logs_url': all_logs_url
+    })
 
 
 # Add a game view
@@ -72,6 +89,13 @@ def add_game(request):
         )
         return redirect('home')
     return render(request, 'core/add_game.html')
+
+@login_required
+def all_logs(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    logs = GameLog.objects.filter(user=user).order_by('-created_at')
+    return render(request, 'core/all_logs.html', {'logs': logs, 'user': user})
+
 
 @login_required
 def edit_game(request, game_id):
@@ -144,6 +168,49 @@ def get_liked_games(user):
 
 
 @login_required
+def add_log(request, game_id):
+    game = get_object_or_404(Game, id=game_id)
+    log, created = GameLog.objects.get_or_create(user=request.user, game=game)
+
+    if request.method == 'POST':
+        form = GameLogForm(request.POST, instance=log)
+        if form.is_valid():
+            form.save()
+            return redirect('game_detail', game_id=game.id)
+    else:
+        form = GameLogForm(instance=log)
+
+    return render(request, 'core/log_form.html', {'form': form, 'game': game})
+
+
+@login_required
+def edit_log(request, log_id):
+    log = get_object_or_404(GameLog, id=log_id, user=request.user)
+
+    if request.method == 'POST':
+        form = GameLogForm(request.POST, instance=log)
+        if form.is_valid():
+            form.save()
+            return redirect('game_detail', game_id=log.game.id)
+    else:
+        form = GameLogForm(instance=log)
+
+    return render(request, 'core/log_form.html', {'form': form, 'game': log.game})
+
+
+@login_required
+def delete_log(request, log_id):
+    log = get_object_or_404(GameLog, id=log_id, user=request.user)
+    game_id = log.game.id
+    log.delete()
+    return redirect('game_detail', game_id=game_id)
+
+def get_games_by_status(user, status=None):
+    if status:
+        return GameLog.objects.filter(user=user, status=status)
+    return GameLog.objects.filter(user=user)
+
+@login_required
 def add_comment(request, game_id):
     game = get_object_or_404(Game, id=game_id)
 
@@ -206,7 +273,8 @@ def delete_comment(request, comment_id):
 def game_detail(request, game_id):
     game = get_object_or_404(Game, id=game_id)
     comments = game.comments.filter(parent__isnull=True).order_by('-created_at')
-    return render(request, 'core/game_detail.html', {'game': game, 'comments': comments})
+    logs_with_notes = game.logs.filter(notes__isnull=False).exclude(notes="").order_by('-created_at')
+    return render(request, 'core/game_detail.html', {'game': game, 'comments': comments, 'logs_with_notes': logs_with_notes})
 
 def user_logout(request):
     logout(request)
