@@ -57,6 +57,7 @@
             background: #4b0082;
             transition: right 0.3s ease;
             z-index: 1000;
+            overflow-y: auto;
         }
         .sidebar.open {
             right: 0;
@@ -75,6 +76,7 @@
             display: none;
             font-size: 30px;
             color: #fff;
+            cursor: pointer;
         }
         /* Responsive Styles */
         @media (max-width: 768px) {
@@ -103,7 +105,7 @@
                     <a href="/register/" class="btn text-white">Register</a>
                 {% endif %}
             </div>
-            <i class="hamburger fas fa-bars" id="hamburger"></i>
+            <i class="hamburger fas fa-bars" id="hamburger" onclick="toggleSidebar()"></i>
         </div>
     </nav>
 
@@ -131,12 +133,10 @@
     </footer>
 
     <script>
-        const hamburger = document.getElementById('hamburger');
-        const sidebar = document.getElementById('sidebar');
-
-        hamburger.addEventListener('click', () => {
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
             sidebar.classList.toggle('open');
-        });
+        }
     </script>
 </body>
 </html>
