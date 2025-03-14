@@ -22,5 +22,6 @@ urlpatterns = [
     path('log/<int:log_id>/edit/', views.edit_log, name='edit_log'),
     path('log/<int:log_id>/delete/', views.delete_log, name='delete_log'),
     path('user/<int:user_id>/logs/', views.all_logs, name='all_logs'),  # Yeni URL
-
+    path('search/', views.search, name='search'),
+    path('view_profile/<int:user_id>/', views.view_profile, name='view_profile'),
 ]

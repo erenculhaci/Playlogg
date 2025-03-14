@@ -9,9 +9,7 @@ from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-
-
-
+from django.db.models import Q
 
 # Home page view
 def home(request):
@@ -49,7 +47,20 @@ def user_login(request):
     return render(request, 'core/login.html', {'form': form})
 
 
-@login_required
+# Search view
+def search(request):
+    query = request.GET.get('query', '')
+    games = Game.objects.filter(Q(name__icontains=query))
+    users = User.objects.filter(Q(username__icontains=query))
+
+    game_results = [{'id': game.id, 'name': game.name} for game in games]
+    user_results = [{'id': user.id, 'username': user.username} for user in users]
+
+    return JsonResponse({
+        'games': game_results,
+        'users': user_results
+    })
+@login_required()
 def user_profile(request):
     user_profile, created = Profile.objects.get_or_create(user=request.user)
     liked_games = get_liked_games(request.user)
@@ -71,6 +82,20 @@ def user_profile(request):
         'all_logs_url': all_logs_url
     })
 
+#view another user's profile
+def view_profile(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    user_profile, created = Profile.objects.get_or_create(user=user)
+    liked_games = get_liked_games(user)
+    logs = GameLog.objects.filter(user=user).order_by('-created_at')[:4]
+    all_logs_url = reverse('all_logs', kwargs={'user_id': user.id})
+
+    return render(request, 'core/profile.html', {
+        'profile': user_profile,
+        'liked_games': liked_games,
+        'logs': logs,
+        'all_logs_url': all_logs_url
+    })
 
 # Add a game view
 @login_required

@@ -1,0 +1,147 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+body {
+    background: url('https://i.hizliresim.com/skotemy.jpg') no-repeat center center fixed;
+    background-size: cover;
+    color: #e0e0e0;
+    font-family: 'Arial', sans-serif;
+    overflow-x: hidden; /* Sağdaki kaydırma çubuğunun çıkmasını engellemek için */
+}
+
+.navbar {
+    background: linear-gradient(to right, #6a0dad, #4b0082, #1d4ed8);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+    position: relative;  /* Navbar'ın pozisyonunu relative yapıyoruz */
+    z-index: 1000;  /* Z-index değeri, navbar'ın üstteki elementlerle çakışmasını engeller */
+}
+
+.navbar:hover {
+    transform: scale(1.02);
+}
+
+.nav-link {
+    transition: color 0.3s ease-in-out;
+}
+
+.nav-link:hover {
+    color: #ffccff;
+}
+
+.btn {
+    background: #6a0dad;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 0.3s;
+}
+
+.btn:hover {
+    background: #8a2be2;
+    transform: scale(1.1);
+}
+
+footer {
+    background: linear-gradient(to right, #6a0dad, #4b0082, #1d4ed8);
+    margin-top: auto;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    right: -250px;
+    width: 250px;
+    height: 100%;
+    background: linear-gradient(#6a0dad, #4b0082, #1d4ed8);
+    transition: right 0.3s ease;
+    z-index: 1050; /* Sidebar'ı navbar'dan üstte yapıyoruz */
+    overflow-y: auto;
+    padding-top: 60px; /* Sidebar'ın üst kısmına biraz boşluk ekliyoruz */
+}
+
+.sidebar.open {
+    right: 0;
+    display: block;
+}
+
+.sidebar a {
+    display: block;
+    padding: 15px;
+    color: #fff;
+    text-decoration: none;
+    border-bottom: 1px solid #6a0dad;
+}
+
+.sidebar a:hover {
+    background-color: #6a0dad;
+}
+
+.hamburger {
+    display: none;
+    font-size: 30px;
+    color: #fff;
+    cursor: pointer;
+}
+
+#searchDropdown {
+    position: absolute;
+    z-index: 2000;  /* Z-index'i artırdık */
+    width: 100%;
+    max-height: 300px;
+    overflow-y: auto;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+#searchDropdown .px-4, #searchDropdown .py-2 {
+    cursor: pointer;
+}
+
+#searchDropdown .px-4:hover, #searchDropdown .py-2:hover {
+    background-color: #f5f5f5;
+}
+
+/* Arama Çubuğu Sidebar'da */
+.sidebar .relative {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .navbar .space-x-6 {
+        display: none;
+    }
+    .hamburger {
+        display: block;
+    }
+
+    /* Navbar'dan search input'u kaldırıyoruz */
+    .navbar .relative {
+        display: none;
+    }
+
+    /* Sidebar'da search input'u gösteriyoruz */
+    .sidebar .relative {
+        display: block;
+    }
+
+    #searchDropdown2 a {
+        color: gray;
+        padding: 10px;
+        display: block;
+        text-decoration: none;
+    }
+
+    #searchDropdown2 a:hover {
+        background-color: #f5f5f5;
+    }
+
+}

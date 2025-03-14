@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,94 +7,31 @@
     <title>{% block title %}Playlogg{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js" defer></script>
-    <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-        }
-        body {
-            background: url('https://i.hizliresim.com/skotemy.jpg') no-repeat center center fixed;
-            background-size: cover;
-            color: #e0e0e0;
-            font-family: 'Arial', sans-serif;
-        }
-        .navbar {
-            background: linear-gradient(90deg, #6a0dad, #4b0082);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease-in-out;
-        }
-        .navbar:hover {
-            transform: scale(1.02);
-        }
-        .nav-link {
-            transition: color 0.3s ease-in-out;
-        }
-        .nav-link:hover {
-            color: #ffccff;
-        }
-        .btn {
-            background: #6a0dad;
-            padding: 8px 16px;
-            border-radius: 8px;
-            transition: all 0.3s;
-        }
-        .btn:hover {
-            background: #8a2be2;
-            transform: scale(1.1);
-        }
-        footer {
-            background: linear-gradient(90deg, #4b0082, #6a0dad);
-            margin-top: auto;
-        }
-        /* Sidebar */
-        .sidebar {
-            position: fixed;
-            top: 0;
-            right: -250px;
-            width: 250px;
-            height: 100%;
-            background: #4b0082;
-            transition: right 0.3s ease;
-            z-index: 1000;
-            overflow-y: auto;
-        }
-        .sidebar.open {
-            right: 0;
-        }
-        .sidebar a {
-            display: block;
-            padding: 15px;
-            color: #fff;
-            text-decoration: none;
-            border-bottom: 1px solid #6a0dad;
-        }
-        .sidebar a:hover {
-            background-color: #6a0dad;
-        }
-        .hamburger {
-            display: none;
-            font-size: 30px;
-            color: #fff;
-            cursor: pointer;
-        }
-        /* Responsive Styles */
-        @media (max-width: 768px) {
-            .navbar .space-x-6 {
-                display: none;
-            }
-            .hamburger {
-                display: block;
-            }
-        }
-    </style>
+
+    <!-- Statik CSS Dosyası -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+
 </head>
 <body>
     <!-- Navigation Bar -->
     <nav class="navbar p-4">
         <div class="container mx-auto flex justify-between items-center">
             <a href="/" class="text-white font-bold text-2xl tracking-wide">Playlogg <i class="fas fa-gamepad"></i></a>
+
+            <div class="relative w-1/3 md:w-1/4">
+                <input type="text" id="searchInput" class="w-full p-2 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-purple-600" placeholder="Search games or profiles..." onkeyup="searchResults()">
+                <div id="searchDropdown" class="absolute left-0 right-0 bg-white shadow-lg hidden z-10 mt-2 max-h-48 overflow-y-auto border rounded-lg">
+                    <div class="px-4 py-2 text-gray-600">Games</div>
+                    <ul id="gameResults" class="px-4 py-2">
+                        <!-- Game search results will be inserted here dynamically -->
+                    </ul>
+                    <div class="px-4 py-2 text-gray-600">Users</div>
+                    <ul id="userResults" class="px-4 py-2">
+                        <!-- User search results will be inserted here dynamically -->
+                    </ul>
+                </div>
+            </div>
+
             <div class="space-x-6 text-lg">
                 <a href="/" class="nav-link text-white">Home</a>
                 {% if user.is_authenticated %}
@@ -109,8 +47,23 @@
         </div>
     </nav>
 
-    <!-- Sidebar -->
+
     <div class="sidebar" id="sidebar">
+        <div class="relative w-full p-4">
+            <input type="text" id="searchInput2" class="w-full p-2 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-purple-600" placeholder="Search games or profiles..." onkeyup="searchResults2()">
+            <div id="searchDropdown2" class="absolute left-0 right-0 bg-white shadow-lg hidden z-10 mt-2 max-h-48 overflow-y-auto border rounded-lg">
+                <div class="px-4 py-2 text-gray-600">Games</div>
+                <ul id="gameResults2" class="px-4 py-2">
+                    <!-- Game search results will be inserted here dynamically -->
+                </ul>
+                <div class="px-4 py-2 text-gray-600">Users</div>
+                <ul id="userResults2" class="px-4 py-2">
+                    <!-- User search results will be inserted here dynamically -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- Sidebar Links -->
         <a href="/">Home</a>
         {% if user.is_authenticated %}
             <a href="/add_game/">Add Game</a>
@@ -132,11 +85,7 @@
         <p>&copy; 2025 Playlogg | Keep Track of Your Games <i class="fas fa-gamepad"></i></p>
     </footer>
 
-    <script>
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('open');
-        }
-    </script>
+    <script src="{% static 'js/script.js' %}"></script>
+
 </body>
 </html>
