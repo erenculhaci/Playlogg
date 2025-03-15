@@ -303,4 +303,4 @@ def game_detail(request, game_id):
 
 def user_logout(request):
     logout(request)
-    return redirect('home')
+    return redirect('login')
