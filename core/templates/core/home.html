@@ -3,22 +3,155 @@
 {% block title %}Home - Playlogg{% endblock %}
 
 {% block content %}
-    <h1 class="text-4xl font-bold text-white mb-8">All Games</h1>
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-        {% for game in games %}
-                <div class="bg-purple-900 text-white rounded-lg p-6 transform transition-all hover:scale-105 hover:bg-purple-700 shadow-md">
-                    <a href="{% url 'game_detail' game.id %}">
-
-                    <h2 class="font-semibold text-xl truncate">{{ game.name }}</h2>
-                    <img src="{{ game.image_url }}" alt="{{ game.name }}" class="relative rounded-lg w-full object-cover z-10">
-                    <p class="text-sm text-gray-300 mt-2">{{ game.description|slice:":120" }}...</p>
-                    <div class="mt-4">
-                        <a href="{% url 'game_detail' game.id %}" class="text-purple-400 hover:text-white transform transition-all hover:underline">
-                            View Details
-                        </a>
+<div class="min-h-screen py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Hero/Banner Section -->
+        <div class="bg-gradient-to-r from-purple-900 to-indigo-900 rounded-xl shadow-2xl mb-8 overflow-hidden">
+            <div class="p-8 sm:p-12 flex flex-col md:flex-row items-center">
+                <div class="md:w-2/3 mb-6 md:mb-0 md:pr-8">
+                    <h1 class="text-4xl sm:text-5xl font-bold text-white leading-tight">
+                        Track Your Gaming Journey
+                    </h1>
+                    <p class="text-purple-200 text-lg mt-4">
+                        Log your gameplay, rate your experiences, and discover new adventures with Playlogg.
+                    </p>
+                    <div class="mt-8 flex flex-wrap gap-4">
+                        {% if not user.is_authenticated %}
+                            <a href="{% url 'login' %}" class="inline-flex items-center px-6 py-3 bg-indigo-600 border border-transparent rounded-md font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
+                                <i class="fas fa-sign-in-alt mr-2"></i> Get Started
+                            </a>
+                        {% endif %}
                     </div>
+                </div>
+                <div class="md:w-1/3 flex justify-center">
+                    <div class="w-40 h-40 rounded-full bg-purple-600 bg-opacity-20 flex items-center justify-center">
+                        <i class="fas fa-gamepad text-6xl text-white opacity-80"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Filter/Sort Section -->
+        <div class="bg-black bg-opacity-75 rounded-lg shadow-xl mb-8 p-6">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold text-white mb-4 md:mb-0">
+                    <i class="fas fa-fire text-purple-500 mr-2"></i> Featured Games
+                </h2>
+
+                <div class="flex flex-wrap gap-2">
+                    <!-- Sort Dropdown -->
+                    <div class="relative">
+                        <select onchange="window.location=this.value" class="appearance-none bg-gray-800 border border-gray-700 text-white px-4 py-2 pr-8 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <option value="?sort=recent" {% if request.GET.sort == 'recent' %}selected{% endif %}>Recently Added</option>
+                            <option value="?sort=popular" {% if request.GET.sort == 'popular' %}selected{% endif %}>Most Popular</option>
+                            <option value="?sort=name" {% if request.GET.sort == 'name' %}selected{% endif %}>A-Z</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-white">
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Games Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {% for game in games %}
+                <div class="bg-gray-800 rounded-lg overflow-hidden shadow-lg transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
+                    <a href="{% url 'game_detail' game.id %}" class="block">
+                        <div class="relative">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60"></div>
+                            <img src="{{ game.image_url }}" alt="{{ game.name }}" class="w-full h-48 object-cover">
+
+                            <!-- Liked indicator -->
+                            {% if user in game.liked_by.all %}
+                                <div class="absolute top-2 right-2">
+                                    <i class="fas fa-heart text-red-500 text-xl"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="p-4">
+                            <h3 class="font-bold text-lg text-white truncate">{{ game.name }}</h3>
+
+                            <div class="flex items-center text-sm text-gray-400 mt-1">
+                                <i class="fas fa-calendar-alt mr-1"></i>
+                                <span>{{ game.release_date|date:"Y" }}</span>
+
+                                <span class="mx-2">•</span>
+
+                                <i class="fas fa-heart mr-1 text-red-500"></i>
+                                <span>{{ game.liked_by.count }}</span>
+
+                                <span class="mx-2">•</span>
+
+                                <i class="fas fa-comment mr-1 text-purple-500"></i>
+                                <span>{{ game.comment_set.count }}</span>
+                            </div>
+
+                            <p class="text-gray-300 text-sm mt-3 line-clamp-2">{{ game.description|truncatechars:100 }}</p>
+
+                            <div class="mt-4 flex justify-between items-center">
+                                <span class="text-purple-400 hover:text-purple-300 transition duration-150 font-medium">
+                                    View Details
+                                </span>
+
+                                <!-- Action button -->
+                                {% if user.is_authenticated %}
+                                <a href="{% url 'add_log' game.id %}" class="flex items-center justify-center w-8 h-8 rounded-full bg-purple-600 hover:bg-purple-500 transition duration-150">
+                                    <i class="fas fa-plus text-white text-xs"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
                     </a>
                 </div>
-        {% endfor %}
+                {% empty %}
+                <div class="col-span-full text-center py-12">
+                    <div class="inline-block p-6 rounded-full bg-gray-800 mb-4">
+                        <i class="fas fa-gamepad text-4xl text-purple-500"></i>
+                    </div>
+                    <p class="text-gray-400 text-lg">No games found</p>
+                    {% if user.is_authenticated %}
+                    <p class="text-gray-500 mt-2">Why not add a new game?</p>
+                    <a href="{% url 'add_game' %}" class="inline-flex items-center px-4 py-2 mt-4 bg-purple-600 border border-transparent rounded-md font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-150 ease-in-out">
+                        <i class="fas fa-plus mr-2"></i> Add Game
+                    </a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if games.has_other_pages %}
+            <div class="mt-8 flex justify-center">
+                <div class="inline-flex rounded-md shadow-sm">
+                    {% if games.has_previous %}
+                    <a href="?page={{ games.previous_page_number }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="px-4 py-2 rounded-l-md border border-gray-700 bg-gray-800 text-gray-300 hover:bg-purple-700 hover:text-white transition duration-150">
+                        <i class="fas fa-chevron-left mr-2"></i> Previous
+                    </a>
+                    {% endif %}
+
+                    <span class="px-4 py-2 border-t border-b border-gray-700 bg-gray-800 text-gray-300">
+                        Page {{ games.number }} of {{ games.paginator.num_pages }}
+                    </span>
+
+                    {% if games.has_next %}
+                    <a href="?page={{ games.next_page_number }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="px-4 py-2 rounded-r-md border border-gray-700 bg-gray-800 text-gray-300 hover:bg-purple-700 hover:text-white transition duration-150">
+                        Next <i class="fas fa-chevron-right ml-2"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if user.is_authenticated %}
+            <div class="mt-8 text-center">
+                <a href="{% url 'add_game' %}" class="inline-flex items-center px-6 py-3 bg-green-600 border border-transparent rounded-md font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out">
+                    <i class="fas fa-plus mr-2"></i> Add New Game
+                </a>
+            </div>
+            {% endif %}
+        </div>
     </div>
+</div>
 {% endblock %}

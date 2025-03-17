@@ -1,5 +1,19 @@
 from django import forms
-from .models import GameLog
+from .models import GameLog, Profile
+from django.contrib.auth.models import User
+
+class UserEditForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['username', 'email']
+
+class ProfileEditForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ['profile_picture', 'first_name', 'last_name', 'bio']
+        widgets = {
+            'bio': forms.Textarea(attrs={'rows': 4}),
+        }
 
 class GameLogForm(forms.ModelForm):
     class Meta:

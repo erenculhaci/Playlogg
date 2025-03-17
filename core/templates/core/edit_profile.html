@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Profile - Playlogg{% endblock %}
+
+{% block content %}
+<div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mx-auto">
+        <div class="bg-gray-900 bg-opacity-90 shadow-2xl rounded-lg overflow-hidden">
+            <!-- Header -->
+            <div class="bg-purple-900 bg-opacity-80 px-6 py-4">
+                <h1 class="text-3xl font-bold text-white">Edit Profile</h1>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" class="p-6 space-y-8">
+                {% csrf_token %}
+
+                <!-- Profile Picture Section -->
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold text-white border-b border-gray-700 pb-2">Profile Picture</h2>
+
+                    <div class="flex items-center space-x-6">
+                        <div class="shrink-0">
+                            {% if request.user.profile.profile_picture %}
+                                <img src="{{ request.user.profile.profile_picture_url }}" alt="Current Profile Picture"
+                                     class="h-32 w-32 object-cover rounded-full ring-2 ring-purple-500">
+                            {% else %}
+                                <img src="/media/profile_pictures/default_profile.jpg" alt="Default Profile Picture"
+                                     class="h-32 w-32 object-cover rounded-full ring-2 ring-purple-500">
+                            {% endif %}
+                        </div>
+
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Upload New Picture</label>
+                            <input type="file" name="{{ profile_form.profile_picture.name }}"
+                                   class="block w-full text-sm text-gray-300
+                                          file:mr-4 file:py-2 file:px-4
+                                          file:rounded file:border-0
+                                          file:text-sm file:font-semibold
+                                          file:bg-purple-600 file:text-white
+                                          hover:file:bg-purple-700
+                                          cursor-pointer">
+
+                            {% if profile_form.profile_picture.errors %}
+                                <p class="mt-1 text-sm text-red-500">{{ profile_form.profile_picture.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personal Information Section -->
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold text-white border-b border-gray-700 pb-2">Personal Information</h2>
+
+                    <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
+                        <!-- First Name -->
+                        <div>
+                            <label for="{{ profile_form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-1">
+                                First Name
+                            </label>
+                            <input type="text" name="{{ profile_form.first_name.name }}" id="{{ profile_form.first_name.id_for_label }}"
+                                   value="{{ profile_form.first_name.value|default:'' }}"
+                                   class="mt-1 block w-full rounded-md bg-gray-800 border border-gray-700
+                                          shadow-sm py-2 px-3 text-white
+                                          focus:outline-none focus:ring-purple-500 focus:border-purple-500">
+                            {% if profile_form.first_name.errors %}
+                                <p class="mt-1 text-sm text-red-500">{{ profile_form.first_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Last Name -->
+                        <div>
+                            <label for="{{ profile_form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-1">
+                                Last Name
+                            </label>
+                            <input type="text" name="{{ profile_form.last_name.name }}" id="{{ profile_form.last_name.id_for_label }}"
+                                   value="{{ profile_form.last_name.value|default:'' }}"
+                                   class="mt-1 block w-full rounded-md bg-gray-800 border border-gray-700
+                                          shadow-sm py-2 px-3 text-white
+                                          focus:outline-none focus:ring-purple-500 focus:border-purple-500">
+                            {% if profile_form.last_name.errors %}
+                                <p class="mt-1 text-sm text-red-500">{{ profile_form.last_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Bio -->
+                    <div>
+                        <label for="{{ profile_form.bio.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-1">
+                            Bio
+                        </label>
+                        <textarea name="{{ profile_form.bio.name }}" id="{{ profile_form.bio.id_for_label }}" rows="4"
+                                  class="mt-1 block w-full rounded-md bg-gray-800 border border-gray-700
+                                         shadow-sm py-2 px-3 text-white
+                                         focus:outline-none focus:ring-purple-500 focus:border-purple-500">{{ profile_form.bio.value|default:'' }}</textarea>
+                        {% if profile_form.bio.errors %}
+                            <p class="mt-1 text-sm text-red-500">{{ profile_form.bio.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Account Information Section -->
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold text-white border-b border-gray-700 pb-2">Account Information</h2>
+
+                    <!-- Username -->
+                    <div>
+                        <label for="{{ user_form.username.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-1">
+                            Username
+                        </label>
+                        <input type="text" name="{{ user_form.username.name }}" id="{{ user_form.username.id_for_label }}"
+                               value="{{ user_form.username.value|default:'' }}"
+                               class="mt-1 block w-full rounded-md bg-gray-800 border border-gray-700
+                                      shadow-sm py-2 px-3 text-white
+                                      focus:outline-none focus:ring-purple-500 focus:border-purple-500">
+                        {% if user_form.username.errors %}
+                            <p class="mt-1 text-sm text-red-500">{{ user_form.username.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label for="{{ user_form.email.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-1">
+                            Email
+                        </label>
+                        <input type="email" name="{{ user_form.email.name }}" id="{{ user_form.email.id_for_label }}"
+                               value="{{ user_form.email.value|default:'' }}"
+                               class="mt-1 block w-full rounded-md bg-gray-800 border border-gray-700
+                                      shadow-sm py-2 px-3 text-white
+                                      focus:outline-none focus:ring-purple-500 focus:border-purple-500">
+                        {% if user_form.email.errors %}
+                            <p class="mt-1 text-sm text-red-500">{{ user_form.email.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex justify-between pt-5">
+                    <a href="{% url 'profile' %}" class="py-2 px-4 bg-gray-700 text-white rounded-md hover:bg-gray-600
+                                                 transition duration-200 focus:outline-none focus:ring-2
+                                                 focus:ring-offset-2 focus:ring-gray-500">
+                        Cancel
+                    </a>
+                    <button type="submit" class="py-2 px-6 bg-purple-600 text-white font-medium rounded-md
+                                            hover:bg-purple-700 transition duration-200 shadow-md
+                                            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+
+            <!-- Delete Account Section -->
+            <div class="px-6 py-4 bg-gray-800 border-t border-gray-700">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg font-medium text-white">Delete Account</h3>
+                        <p class="text-sm text-gray-400">Permanently delete your account and all data</p>
+                    </div>
+                    <a href="{% url 'delete_profile' %}" class="py-2 px-4 bg-red-600 text-white rounded-md
+                                                       hover:bg-red-700 transition duration-200
+                                                       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        Delete Account
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -8,7 +8,8 @@ urlpatterns = [
     path('profile/', views.user_profile, name='profile'),
     path('add_game/', views.add_game, name='add_game'),
     path('unfavorite/<int:game_id>/', views.unfavorite_game, name='unfavorite_game'),
-
+    path('edit_profile/', views.edit_profile, name='edit_profile'),
+    path('delete_profile/', views.delete_profile, name='delete_profile'),
     path('edit_game/<int:game_id>/', views.edit_game, name='edit_game'),
     path('delete_game/<int:game_id>/', views.delete_game, name='delete_game'),
     path('like_game/<int:game_id>/', views.like_game, name='like_game'),

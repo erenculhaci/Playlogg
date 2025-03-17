@@ -3,7 +3,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from .models import Game, Comment, Profile, GameLog, User
-from .forms import GameLogForm
+from .forms import GameLogForm, ProfileEditForm, UserEditForm
 from django.contrib import messages
 from django.urls import reverse
 from django.http import HttpResponseRedirect
@@ -11,6 +11,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.db.models import Q
 import os
+from django.contrib.auth.hashers import check_password
+from django.db import transaction
 
 # Home page view
 def home(request):
@@ -47,6 +49,56 @@ def user_login(request):
 
     return render(request, 'core/login.html', {'form': form})
 
+
+@login_required
+def edit_profile(request):
+    # Make sure the profile exists
+    profile, created = Profile.objects.get_or_create(user=request.user)
+
+    if request.method == 'POST':
+        user_form = UserEditForm(request.POST, instance=request.user)
+        profile_form = ProfileEditForm(request.POST, request.FILES, instance=profile)
+
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_obj = profile_form.save(commit=False)
+
+            # Handle profile picture
+            if 'profile_picture' in request.FILES:
+                profile_obj.profile_picture = request.FILES['profile_picture']
+            elif 'profile_picture-clear' in request.POST:
+                # This handles the case when user clears the image
+                profile_obj.profile_picture = 'profile_pictures/default_profile.jpg'
+
+            profile_obj.save()
+            messages.success(request, 'Your profile was successfully updated!')
+            return redirect('profile')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        user_form = UserEditForm(instance=request.user)
+        profile_form = ProfileEditForm(instance=profile)
+
+    return render(request, 'core/edit_profile.html', {
+        'user_form': user_form,
+        'profile_form': profile_form
+    })
+
+@login_required
+def delete_profile(request):
+    if request.method == 'POST':
+        password = request.POST.get('password')
+
+        # Verify the password
+        if check_password(password, request.user.password):
+            # Delete the user account
+            request.user.delete()
+            messages.success(request, 'Your account has been deleted.')
+            return redirect('register')
+        else:
+            messages.error(request, 'Incorrect password. Please try again.')
+
+    return render(request, 'core/delete_profile.html')
 
 # Search view
 def search(request):

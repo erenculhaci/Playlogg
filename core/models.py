@@ -74,10 +74,26 @@ class GameLog(models.Model):
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=100, blank=True)
+    last_name = models.CharField(max_length=100, blank=True)
+    bio = models.TextField(blank=True)
     favorite_games = models.ManyToManyField(Game, related_name="favorites", blank=True)
+    profile_picture = models.ImageField(
+        upload_to='profile_pictures/',
+        null=True,
+        blank=True,
+        default='profile_pictures/default_profile.jpg'
+    )
 
     def __str__(self):
         return self.user.username
+
+    @property
+    def profile_picture_url(self):
+        if self.profile_picture and hasattr(self.profile_picture, 'url'):
+            return self.profile_picture.url
+        else:
+            return '/media/profile_pictures/default_profile.jpg'
 
 class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
