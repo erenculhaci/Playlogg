@@ -158,6 +158,55 @@ function searchResults2() {
         });
 }
 
+// User dropdown functionality
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing dropdown');
+
+    const userAvatar = document.querySelector('.user-avatar');
+    const dropdownMenu = document.querySelector('.dropdown-menu');
+
+    if (userAvatar && dropdownMenu) {
+        console.log('Found user avatar and dropdown menu');
+
+        // Toggle dropdown when clicking on avatar
+        userAvatar.addEventListener('click', function(e) {
+            console.log('Avatar clicked');
+            e.stopPropagation();
+
+            // Toggle active class
+            if (dropdownMenu.classList.contains('hidden')) {
+                dropdownMenu.classList.remove('hidden');
+                // Small delay to ensure the display change has taken effect
+                setTimeout(() => {
+                    dropdownMenu.classList.add('active');
+                }, 10);
+            } else {
+                dropdownMenu.classList.remove('active');
+                // Wait for animation to complete before hiding
+                setTimeout(() => {
+                    dropdownMenu.classList.add('hidden');
+                }, 300);
+            }
+        });
+
+        // Close dropdown when clicking elsewhere
+        document.addEventListener('click', function(e) {
+            if (dropdownMenu && !dropdownMenu.classList.contains('hidden') &&
+                !dropdownMenu.contains(e.target) && !userAvatar.contains(e.target)) {
+                console.log('Clicked outside, closing dropdown');
+                dropdownMenu.classList.remove('active');
+                setTimeout(() => {
+                    dropdownMenu.classList.add('hidden');
+                }, 300);
+            }
+        });
+    } else {
+        console.log('Could not find user avatar or dropdown menu');
+        if (!userAvatar) console.log('User avatar not found');
+        if (!dropdownMenu) console.log('Dropdown menu not found');
+    }
+});
+
 // Add the event listener to the hamburger button to toggle the sidebar
 const hamburger = document.querySelector('.hamburger');
 hamburger.addEventListener('click', toggleSidebar);

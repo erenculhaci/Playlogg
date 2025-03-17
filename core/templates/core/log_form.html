@@ -1,64 +1,365 @@
 {% extends 'base.html' %}
 
-{% block title %}Add Log - {{ game.name }}{% endblock %}
+{% block title %}{% if form.instance.id %}Edit{% else %}Add{% endif %} Log - {{ game.name }}{% endblock %}
 
 {% block content %}
-    <div class="container mx-auto p-6">
-        <div class="bg-gray-800 shadow-lg rounded-lg p-6 mb-8 transform transition-all hover:scale-105">
-            <h1 class="text-3xl font-bold text-white mb-4">Add a Log for {{ game.name }}</h1>
+    <div class="container mx-auto px-4 py-8 max-w-3xl">
+        <!-- Game Header Card -->
+        <div class="bg-gradient-to-br from-gray-800 to-gray-900 shadow-2xl rounded-2xl p-6 mb-8 border border-gray-700 transform transition-all hover:shadow-purple-500/30">
+            <h1 class="text-3xl font-bold text-white mb-2 flex items-center">
+                <span class="mr-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                </span>
+                {% if form.instance.id %}Edit{% else %}Add{% endif %} Game Log
+            </h1>
+            <p class="text-xl font-semibold text-purple-300 mb-4">{{ game.name }}</p>
+        </div>
 
-            <form method="post">
+        <!-- Form Card -->
+        <div class="bg-gradient-to-br from-gray-900 to-gray-800 shadow-xl rounded-2xl p-6 mb-8 border border-gray-700">
+            <form method="post" class="space-y-6">
                 {% csrf_token %}
 
-                <!-- Status Selection Tabs (No Background) -->
-                <div class="flex overflow-x-auto mb-6 space-x-2">
-                    {% for status_code, status_name in status_choices %}
-                        <button type="button"
-                            class="status-tab px-4 py-2 text-gray-300 border border-gray-600 rounded-lg transition-all duration-300 ease-in-out hover:bg-purple-600 hover:text-white hover:shadow-lg hover:shadow-purple-500/50 {% if form.status.value == status_code %}bg-purple-600 text-white{% endif %}"
-                            data-value="{{ status_code }}">
-                            {{ status_name }}
-                        </button>
-                    {% endfor %}
+                <!-- Status Selection Section -->
+                <div class="mb-8">
+                    <label class="block text-purple-300 text-lg font-medium mb-3">Game Status</label>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {% for status_code, status_name in status_choices %}
+                            <button type="button"
+                                class="status-tab flex items-center justify-center px-4 py-3 text-gray-300 border border-gray-600 rounded-xl transition-all duration-300 ease-in-out hover:bg-purple-600 hover:text-white hover:shadow-lg hover:shadow-purple-500/50 {% if form.status.value == status_code %}bg-purple-600 text-white border-purple-400 ring-2 ring-purple-400/50{% endif %}"
+                                data-value="{{ status_code }}">
+                                <!-- Status Icons -->
+                                {% if status_code == 'completed' %}
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                {% elif status_code == 'playing' %}
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                {% elif status_code == 'on_hold' %}
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                {% elif status_code == 'dropped' %}
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                {% elif status_code == 'plan_to_play' %}
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                {% else %}
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                    </svg>
+                                {% endif %}
+                                {{ status_name }}
+                            </button>
+                        {% endfor %}
+                    </div>
                     <!-- Hidden Input Field to Store Selected Status -->
-                    <input type="hidden" name="status" id="selected-status" value="{{ form.status.value }}">
+                    <input type="hidden" name="status" id="selected-status" value="{{ form.status.value|default_if_none:'plan_to_play' }}">
                 </div>
 
-                <!-- Other Form Fields -->
-                <div class="mb-4">{{ form.notes }}</div>
-                <div class="mb-4">{{ form.rating }}</div>
-                <div class="mb-4">{{ form.hours_played }}</div>
+                <!-- Rating Field with Half-Stars -->
+                <div class="mb-6">
+                    <label for="id_rating" class="block text-purple-300 text-lg font-medium mb-3">Rating</label>
+                    <div class="flex items-center space-x-2">
+                        <div class="star-rating flex items-center space-x-1">
+                            {% for i in "12345" %}
+                                <button type="button" class="star-btn p-1 focus:outline-none transition-all" data-value="{{ forloop.counter }}">
+                                    <!-- Stars will be inserted by JavaScript -->
+                                </button>
+                            {% endfor %}
+                        </div>
+                        <span class="text-lg text-white ml-2" id="rating-display">{{ form.rating.value|default:'0' }}/5</span>
+                        <input type="hidden" name="rating" id="id_rating" value="{{ form.rating.value|default:'0' }}">
+                    </div>
+                </div>
 
-                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transform transition-all hover:scale-105 mt-4">
-                    Save Log
-                </button>
+                <!-- Hours Played with Custom Input -->
+                <div class="mb-6">
+                    <label for="id_hours_played" class="block text-purple-300 text-lg font-medium mb-3">Hours Played</label>
+                    <div class="flex items-center">
+                        <div class="relative flex-grow">
+                            {{ form.hours_played }}
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <span class="text-gray-400">hrs</span>
+                            </div>
+                        </div>
+                        <!-- Quick Selection Buttons -->
+                        <div class="flex ml-4 space-x-2">
+                            <button type="button" class="hour-preset px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-purple-600 transition-colors" data-value="1">1</button>
+                            <button type="button" class="hour-preset px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-purple-600 transition-colors" data-value="5">5</button>
+                            <button type="button" class="hour-preset px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-purple-600 transition-colors" data-value="10">10</button>
+                            <button type="button" class="hour-preset px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-purple-600 transition-colors" data-value="25">25</button>
+                            <button type="button" class="hour-preset px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-purple-600 transition-colors" data-value="50">50</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes Field -->
+                <div class="mb-6">
+                    <label for="id_notes" class="block text-purple-300 text-lg font-medium mb-3">Notes</label>
+                    {{ form.notes }}
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex justify-between pt-4 border-t border-gray-700">
+                    <a href="{% url 'game_detail' game_id=game.id %}" class="bg-gray-600 text-white px-6 py-3 rounded-xl hover:bg-gray-500 transform transition-all hover:scale-105 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        Cancel
+                    </a>
+                    <button type="submit" class="bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-500 transform transition-all hover:scale-105 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Save Log
+                    </button>
+                </div>
             </form>
         </div>
     </div>
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            // Status Tab Selection
             const statusButtons = document.querySelectorAll(".status-tab");
             const statusInput = document.getElementById("selected-status");
 
             // Ensure the selected status is highlighted when the page loads
-            statusButtons.forEach(button => {
-                if (button.getAttribute("data-value") === statusInput.value) {
-                    button.classList.add("bg-purple-600", "text-white");
-                }
-            });
+            if (!statusInput.value) {
+                statusInput.value = "plan_to_play"; // Default value if none selected
+            }
 
             statusButtons.forEach(button => {
                 button.addEventListener("click", function() {
                     // Remove active styles from all buttons
-                    statusButtons.forEach(btn => btn.classList.remove("bg-purple-600", "text-white"));
-                    statusButtons.forEach(btn => btn.classList.add("border-gray-600", "text-gray-300", "hover:bg-purple-600", "hover:text-white"));
+                    statusButtons.forEach(btn => {
+                        btn.classList.remove("bg-purple-600", "text-white", "border-purple-400", "ring-2", "ring-purple-400/50");
+                        btn.classList.add("text-gray-300", "border-gray-600");
+                    });
 
                     // Add active styles to the selected button
-                    this.classList.add("bg-purple-600", "text-white");
+                    this.classList.add("bg-purple-600", "text-white", "border-purple-400", "ring-2", "ring-purple-400/50");
 
                     // Update hidden input field with selected status value
                     statusInput.value = this.getAttribute("data-value");
                 });
+            });
+
+            // Star Rating
+            const starBtns = document.querySelectorAll(".star-btn");
+            const ratingInput = document.getElementById("id_rating");
+            const ratingDisplay = document.getElementById("rating-display");
+
+            starBtns.forEach((btn, index) => {
+                btn.innerHTML = `
+                    <div class="relative">
+                        <!-- Empty star (background) -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-600 transition-all duration-300" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                        </svg>
+                        <!-- Full star (overlay) -->
+                        <div class="absolute inset-0 overflow-hidden star-fill transition-all duration-300 ease-out transform origin-left" style="width: ${getRatingWidth(index + 1)}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                            </svg>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Function to get width for star fills
+            function getRatingWidth(position) {
+                const currentRating = parseFloat(ratingInput.value) || 0;
+                if (position <= currentRating) {
+                    return "100%";
+                } else if (position > currentRating && position - 1 < currentRating) {
+                    // For half stars
+                    return ((currentRating % 1) * 100) + "%";
+                }
+                return "0%";
+            }
+
+            // Update stars when rating changes
+            function updateStars(rating) {
+                ratingInput.value = rating;
+                ratingDisplay.textContent = rating + "/5";
+
+                // Update each star's fill width
+                starBtns.forEach((btn, index) => {
+                    const fillElement = btn.querySelector(".star-fill");
+                    fillElement.style.width = getRatingWidth(index + 1);
+                });
+            }
+
+            // Initial setup
+            updateStars(parseFloat(ratingInput.value) || 0);
+
+            // Create a parent container for all stars to handle hover effects
+            const starContainer = document.querySelector(".star-rating");
+
+            // Add hover effects to stars
+            starBtns.forEach((btn, index) => {
+                // Preview stars on hover
+                btn.addEventListener("mouseenter", function(e) {
+                    const rect = btn.getBoundingClientRect();
+                    const hoverX = e.clientX - rect.left;
+                    const halfPoint = rect.width / 2;
+
+                    let hoverValue;
+                    if (hoverX < halfPoint) {
+                        hoverValue = index + 0.5; // Half star
+                    } else {
+                        hoverValue = index + 1; // Full star
+                    }
+
+                    // Preview the hover state
+                    starBtns.forEach((starBtn, i) => {
+                        const fillElement = starBtn.querySelector(".star-fill");
+                        if (i < index) {
+                            fillElement.style.width = "100%";
+                            fillElement.classList.add("scale-110");
+                        } else if (i === index) {
+                            fillElement.style.width = hoverX < halfPoint ? "50%" : "100%";
+                            fillElement.classList.add("scale-110");
+                        } else {
+                            fillElement.style.width = "0%";
+                        }
+
+                        // Add pulse animation to the hovered star
+                        if (i === index) {
+                            fillElement.classList.add("pulse-animation");
+                        }
+                    });
+
+                    // Update display preview
+                    ratingDisplay.textContent = hoverValue + "/5";
+                    ratingDisplay.classList.add("text-yellow-300");
+                });
+
+                // Handle mousemove for dynamic half-star effects
+                btn.addEventListener("mousemove", function(e) {
+                    const rect = btn.getBoundingClientRect();
+                    const hoverX = e.clientX - rect.left;
+                    const halfPoint = rect.width / 2;
+
+                    const fillElement = btn.querySelector(".star-fill");
+                    if (hoverX < halfPoint) {
+                        fillElement.style.width = "50%";
+                        ratingDisplay.textContent = (index + 0.5) + "/5";
+                    } else {
+                        fillElement.style.width = "100%";
+                        ratingDisplay.textContent = (index + 1) + "/5";
+                    }
+                });
+
+                // Reset stars when not hovering anymore
+                btn.addEventListener("mouseleave", function() {
+                    const fillElement = btn.querySelector(".star-fill");
+                    fillElement.classList.remove("scale-110", "pulse-animation");
+                });
+
+                // Update rating on click
+                btn.addEventListener("click", function(e) {
+                    const rect = btn.getBoundingClientRect();
+                    const clickX = e.clientX - rect.left;
+                    const halfPoint = rect.width / 2;
+
+                    let value;
+                    if (clickX < halfPoint) {
+                        value = index + 0.5; // Half star
+                    } else {
+                        value = index + 1; // Full star
+                    }
+
+                    updateStars(value);
+
+                    // Add click animation
+                    const fillElement = btn.querySelector(".star-fill");
+                    fillElement.classList.add("scale-125");
+                    setTimeout(() => {
+                        fillElement.classList.remove("scale-125");
+                    }, 300);
+                });
+            });
+
+            // Reset to actual rating when mouse leaves the star container
+            starContainer.addEventListener("mouseleave", function() {
+                updateStars(parseFloat(ratingInput.value) || 0);
+                ratingDisplay.classList.remove("text-yellow-300");
+
+                // Remove all animations
+                starBtns.forEach(btn => {
+                    const fillElement = btn.querySelector(".star-fill");
+                    fillElement.classList.remove("scale-110", "pulse-animation", "scale-125");
+                });
+            });
+
+            // Add this CSS to your script section
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes pulse {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(1.1); }
+                    100% { transform: scale(1); }
+                }
+                .pulse-animation {
+                    animation: pulse 0.5s infinite;
+                }
+                .star-btn:hover .star-fill {
+                    filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.8));
+                }
+                .star-rating {
+                    transition: all 0.3s ease;
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Hours Played Quick Selection
+            const hoursInput = document.getElementById("id_hours_played");
+            const hourPresets = document.querySelectorAll(".hour-preset");
+
+            hourPresets.forEach(preset => {
+                preset.addEventListener("click", function() {
+                    hoursInput.value = this.getAttribute("data-value");
+
+                    // Highlight the selected preset
+                    hourPresets.forEach(btn => {
+                        btn.classList.remove("bg-purple-600");
+                        btn.classList.add("bg-gray-700");
+                    });
+                    this.classList.remove("bg-gray-700");
+                    this.classList.add("bg-purple-600");
+                });
+            });
+
+            // Animations and transitions
+            const formElements = document.querySelectorAll("input, textarea, button");
+            formElements.forEach(element => {
+                element.addEventListener("focus", function() {
+                    this.classList.add("scale-105");
+                    setTimeout(() => {
+                        this.classList.remove("scale-105");
+                    }, 200);
+                });
+            });
+
+            // Form validation
+            const form = document.querySelector("form");
+            form.addEventListener("submit", function(event) {
+                // Basic validation
+                if (!statusInput.value) {
+                    event.preventDefault();
+                    alert("Please select a game status");
+                }
             });
         });
     </script>

@@ -347,7 +347,8 @@ def add_comment(request, game_id):
 
         Comment.objects.create(game=game, user=request.user, text=text, parent=parent_comment)
         messages.success(request, "Comment added successfully!")
-        return redirect('game_detail', game_id=game.id)
+        # Changed redirect to include fragment
+        return HttpResponseRedirect(reverse('game_detail', kwargs={'game_id': game.id}) + '#comments')
 
     return redirect('game_detail', game_id=game.id)
 
@@ -361,7 +362,8 @@ def like_comment(request, comment_id):
     else:
         comment.likes.add(request.user)
 
-    return redirect('game_detail', game_id=comment.game.id)
+    # Changed redirect to include fragment
+    return HttpResponseRedirect(reverse('game_detail', kwargs={'game_id': comment.game.id}) + '#comments')
 
 
 # Edit comment view
@@ -374,7 +376,8 @@ def edit_comment(request, comment_id):
     if request.method == 'POST':
         comment.text = request.POST.get('comment')
         comment.save()
-        return redirect('game_detail', game_id=comment.game.id)
+        # Changed redirect to include fragment
+        return HttpResponseRedirect(reverse('game_detail', kwargs={'game_id': comment.game.id}) + '#comments')
 
     return render(request, 'core/edit_comment.html', {'comment': comment})
 
@@ -386,8 +389,10 @@ def delete_comment(request, comment_id):
     if request.user != comment.user:
         return redirect('home')
 
+    game_id = comment.game.id
     comment.delete()
-    return redirect('game_detail', game_id=comment.game.id)
+    # Changed redirect to include fragment
+    return HttpResponseRedirect(reverse('game_detail', kwargs={'game_id': game_id}) + '#comments')
 
 
 # Game detail view

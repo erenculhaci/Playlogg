@@ -16,12 +16,12 @@ body {
 .logo {
     height: 65px;
     width: auto;
-    transition: transform 0.3s ease, filter 0.3s ease; /* Yumuşak geçişler */
+    transition: transform 0.3s ease, filter 0.3s ease;
 }
 
 .logo:hover {
     transform: scale(1.1); /* Hover ile biraz büyüme */
-    filter: drop-shadow(0px 6px 15px rgba(255, 255, 255, 0.9)); /* Daha belirgin parlama efekti */
+    filter: drop-shadow(0px 6px 15px rgba(255, 255, 255, 0.9));
 }
 
 .navbar {
@@ -98,7 +98,6 @@ footer {
     cursor: pointer;
 }
 
-/* New Search Bar Styles */
 .search-container {
     position: relative;
     transition: all 0.3s ease;
@@ -220,6 +219,63 @@ footer {
     display: none;
 }
 
+/* User dropdown styles */
+.user-dropdown {
+    position: relative;
+    z-index: 1100;
+}
+
+.user-avatar {
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+.user-avatar:hover {
+    transform: scale(1.1);
+}
+
+.dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 5px);
+    width: 200px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(5px);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(106, 13, 173, 0.4), 0 0 15px rgba(255, 204, 255, 0.4);
+    z-index: 1200;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+}
+
+.dropdown-menu.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.dropdown-item {
+    display: block;
+    padding: 0.75rem 1rem;
+    color: #4b0082;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background-color: rgba(106, 13, 173, 0.1);
+    color: #6a0dad;
+}
+
+.dropdown-menu.hidden {
+    display: none;
+}
+
+.dropdown-menu:not(.hidden) {
+    display: block;
+}
 /* Responsive Styles */
 @media (max-width: 768px) {
     .navbar .space-x-6 {

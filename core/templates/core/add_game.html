@@ -3,62 +3,161 @@
 {% block title %}Add Game - Playlogg{% endblock %}
 
 {% block content %}
-    <div class="flex justify-center items-center min-h-screen">
-        <div class="w-full max-w-2xl p-8 bg-gray-800 rounded-lg shadow-xl transform transition-all hover:scale-105">
-            <h1 class="text-4xl font-bold text-center text-white mb-6">Add a New Game</h1>
-            <form method="post" class="space-y-6" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div class="space-y-2">
-                    <label for="name" class="text-lg font-semibold text-white">Game Name:</label>
-                    <input type="text" name="name" id="name" class="w-full p-3 text-white bg-transparent border-2 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all" placeholder="Enter the game name" required>
-                </div>
+<div class=" bg-[url('/static/img/game-pattern.png')] py-12">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-3xl">
+    <div class="bg-gray-800 shadow-2xl rounded-2xl overflow-hidden border-2 border-purple-600">
 
-                <div class="space-y-2">
-                    <label for="description" class="text-lg font-semibold text-white">Game Description:</label>
-                    <textarea name="description" id="description" class="w-full p-3 text-white bg-transparent border-2 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all" rows="4" placeholder="Describe the game" required></textarea>
-                </div>
-
-                <div class="space-y-2">
-                    <label for="release_date" class="text-lg font-semibold text-white">Release Date:</label>
-                    <input type="date" name="release_date" id="release_date" class="w-full p-3 text-white bg-transparent border-2 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all" required>
-                </div>
-
-                <div class="space-y-2">
-                    <label for="image" class="text-lg font-semibold text-white">Game Image:</label>
-                    <div class="flex items-center space-x-2">
-                        <input type="file" name="image" id="image" accept="image/*" class="w-full p-3 text-white bg-transparent border-2 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all">
-                    </div>
-                    <div class="mt-2" id="image-preview-container" style="display: none;">
-                        <img id="image-preview" class="max-h-48 rounded-lg" alt="Image preview">
-                    </div>
-                </div>
-
-                <div class="flex justify-center">
-                    <button type="submit" class="w-12 h-12 flex justify-center items-center text-white font-bold text-3xl bg-purple-600 rounded-full shadow-lg hover:bg-purple-700 focus:outline-none transform transition-all hover:scale-110">
-                        +
-                    </button>
-                </div>
-            </form>
+      <!-- Header with animated gaming element -->
+      <div class="bg-gradient-to-r from-purple-900 to-blue-900 p-6 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-32 h-32 opacity-20">
+          <div class="animate-pulse">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-full h-full text-white fill-current">
+              <path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-1 10H4c-.55 0-1-.45-1-1V9c0-.55.45-1 1-1h16c.55 0 1 .45 1 1v6c0 .55-.45 1-1 1z"/>
+              <circle cx="16.5" cy="12" r="1.5"/>
+              <circle cx="11.5" cy="12" r="1.5"/>
+              <path d="M7.5 13.5h-3v-3h3v3z"/>
+            </svg>
+          </div>
         </div>
-    </div>
 
-    <script>
-        // Image preview functionality
-        document.getElementById('image').addEventListener('change', function(e) {
-            const previewContainer = document.getElementById('image-preview-container');
-            const preview = document.getElementById('image-preview');
-            const file = e.target.files[0];
+        <div class="flex items-center justify-between relative z-10">
+          <h1 class="text-4xl font-bold text-white">
+            <span class="text-purple-400">Add</span> New Game
+          </h1>
+          <div class="bg-purple-600 rounded-full p-2 shadow-lg animate-bounce">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+          </div>
+        </div>
+      </div>
 
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
+      <!-- Form -->
+      <div class="p-6 space-y-6">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <div class="mb-6">
+            <label for="name" class="block text-lg font-semibold text-purple-300 mb-2">Game Name</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
+              </div>
+            <input type="text" name="name" id="name" placeholder="Enter epic game title" class="pl-10 w-full p-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300">
+            </div>
+                </div>
+
+                      <div class="mb-6">
+                        <label for="description" class="block text-lg font-semibold text-purple-300 mb-2">Game Description</label>
+                        <div class="relative">
+                          <div class="absolute top-3 left-3 pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16" />
+                            </svg>
+                          </div>
+                          <textarea name="description" id="description" rows="4" placeholder="What makes this game special?" class="pl-10 w-full p-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"></textarea>
+                        </div>
+                      </div>
+
+                      <div class="mb-6">
+                        <label for="release_date" class="block text-lg font-semibold text-purple-300 mb-2">Release Date</label>
+                        <div class="relative">
+                          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                          </div>
+                          <input type="date" name="release_date" id="release_date" class="pl-10 w-full p-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300">
+                        </div>
+                      </div>
+
+                      <div class="mb-6">
+                        <label for="image" class="block text-lg font-semibold text-purple-300 mb-2">Game Image</label>
+                        <div class="bg-gray-700 p-4 rounded-xl border-2 border-gray-600">
+                          <div class="relative">
+                            <label for="image" class="cursor-pointer w-full flex items-center justify-center p-6 border-2 border-dashed border-purple-500 rounded-lg hover:border-purple-400 transition-colors duration-300">
+                              <div class="text-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <p class="mt-2 text-sm text-purple-300">Drag and drop or click to upload</p>
+                                <p class="text-xs text-gray-400">PNG, JPG, GIF up to 10MB</p>
+                              </div>
+                              <input type="file" name="image" id="image" accept="image/*" class="hidden">
+                            </label>
+                          </div>
+
+                          <div class="mt-4" id="image-preview-container" style="display: none;">
+                            <div class="relative group">
+                              <img id="image-preview" class="w-full h-48 object-cover rounded-lg" alt="Image preview">
+                              <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg">
+                                <button type="button" id="remove-preview" class="p-2 bg-red-600 rounded-full hover:bg-red-700 transition-colors">
+                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="flex justify-center mt-8">
+                        <button type="submit" class="group relative px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl text-white font-bold text-lg shadow-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-800 overflow-hidden">
+                          <span class="relative z-10 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Add Game
+                          </span>
+                          <span class="absolute top-0 left-0 right-0 bottom-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+
+                  <!-- Gaming-themed decoration at bottom -->
+                  <div class="bg-gray-700 p-4 border-t border-gray-600">
+                    <div class="flex justify-center space-x-4">
+                      <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                      <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                      <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                      <div class="w-3 h-3 rounded-full bg-blue-500"></div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            <script>
+              // Image preview functionality
+              document.getElementById('image').addEventListener('change', function(e) {
+                const previewContainer = document.getElementById('image-preview-container');
+                const preview = document.getElementById('image-preview');
+                const file = e.target.files[0];
+
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onload = function(e) {
                     preview.src = e.target.result;
                     previewContainer.style.display = 'block';
+                  }
+                  reader.readAsDataURL(file);
+                } else {
+                  previewContainer.style.display = 'none';
                 }
-                reader.readAsDataURL(file);
-            } else {
+              });
+
+              // Remove preview functionality
+              document.getElementById('remove-preview').addEventListener('click', function() {
+                const previewContainer = document.getElementById('image-preview-container');
+                const fileInput = document.getElementById('image');
+
+                fileInput.value = '';
                 previewContainer.style.display = 'none';
-            }
-        });
-    </script>
-{% endblock %}
+              });
+            </script>
+            {% endblock %}
