@@ -9,11 +9,57 @@
 
             <form method="post">
                 {% csrf_token %}
-                {{ form.as_p }}
+
+                <!-- Status Selection Tabs (No Background) -->
+                <div class="flex overflow-x-auto mb-6 space-x-2">
+                    {% for status_code, status_name in status_choices %}
+                        <button type="button"
+                            class="status-tab px-4 py-2 text-gray-300 border border-gray-600 rounded-lg transition-all duration-300 ease-in-out hover:bg-purple-600 hover:text-white hover:shadow-lg hover:shadow-purple-500/50 {% if form.status.value == status_code %}bg-purple-600 text-white{% endif %}"
+                            data-value="{{ status_code }}">
+                            {{ status_name }}
+                        </button>
+                    {% endfor %}
+                    <!-- Hidden Input Field to Store Selected Status -->
+                    <input type="hidden" name="status" id="selected-status" value="{{ form.status.value }}">
+                </div>
+
+                <!-- Other Form Fields -->
+                <div class="mb-4">{{ form.notes }}</div>
+                <div class="mb-4">{{ form.rating }}</div>
+                <div class="mb-4">{{ form.hours_played }}</div>
+
                 <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transform transition-all hover:scale-105 mt-4">
                     Save Log
                 </button>
             </form>
         </div>
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const statusButtons = document.querySelectorAll(".status-tab");
+            const statusInput = document.getElementById("selected-status");
+
+            // Ensure the selected status is highlighted when the page loads
+            statusButtons.forEach(button => {
+                if (button.getAttribute("data-value") === statusInput.value) {
+                    button.classList.add("bg-purple-600", "text-white");
+                }
+            });
+
+            statusButtons.forEach(button => {
+                button.addEventListener("click", function() {
+                    // Remove active styles from all buttons
+                    statusButtons.forEach(btn => btn.classList.remove("bg-purple-600", "text-white"));
+                    statusButtons.forEach(btn => btn.classList.add("border-gray-600", "text-gray-300", "hover:bg-purple-600", "hover:text-white"));
+
+                    // Add active styles to the selected button
+                    this.classList.add("bg-purple-600", "text-white");
+
+                    // Update hidden input field with selected status value
+                    statusInput.value = this.getAttribute("data-value");
+                });
+            });
+        });
+    </script>
 {% endblock %}

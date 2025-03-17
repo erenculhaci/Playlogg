@@ -115,11 +115,25 @@ def add_game(request):
         return redirect('home')
     return render(request, 'core/add_game.html')
 
-@login_required
+
 def all_logs(request, user_id):
     user = get_object_or_404(User, id=user_id)
-    logs = GameLog.objects.filter(user=user).order_by('-created_at')
-    return render(request, 'core/all_logs.html', {'logs': logs, 'user': user})
+    status_filter = request.GET.get('status', None)
+
+    # Get logs using the existing function
+    if status_filter:
+        logs = get_games_by_status(user, status=status_filter).order_by('-created_at')
+    else:
+        logs = GameLog.objects.filter(user=user).order_by('-created_at')
+
+    # Get status choices from model
+    status_choices = GameLog.STATUS_CHOICES
+
+    return render(request, 'core/all_logs.html', {
+        'logs': logs,
+        'user': user,
+        'status_choices': status_choices
+    })
 
 
 @login_required
@@ -205,7 +219,9 @@ def add_log(request, game_id):
     else:
         form = GameLogForm(instance=log)
 
-    return render(request, 'core/log_form.html', {'form': form, 'game': game})
+    status_choices = GameLog.STATUS_CHOICES
+
+    return render(request, 'core/log_form.html', {'form': form, 'game': game, 'status_choices': status_choices})
 
 
 @login_required
@@ -220,7 +236,9 @@ def edit_log(request, log_id):
     else:
         form = GameLogForm(instance=log)
 
-    return render(request, 'core/log_form.html', {'form': form, 'game': log.game})
+    status_choices = GameLog.STATUS_CHOICES
+
+    return render(request, 'core/log_form.html', {'form': form, 'game': log.game, 'status_choices': status_choices})
 
 
 @login_required
