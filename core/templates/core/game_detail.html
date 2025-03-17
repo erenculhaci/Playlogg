@@ -9,73 +9,132 @@
             {% if game.added_by == user %}
                 <!-- Edit and Delete buttons positioned inside the card -->
                 <div class="absolute top-4 right-4 space-x-2">
-                    <a href="{% url 'delete_game' game.id %}" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transform transition-all hover:scale-105">
+                    <a href="{% url 'delete_game' game.id %}" class="text-white py-1 rounded-lg transform transition-all hover:scale-105">
                         <i class="fas fa-trash-alt"></i> <!-- Delete icon for game -->
                     </a>
-                    <a href="{% url 'edit_game' game.id %}" class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transform transition-all hover:scale-105">
+                    <a href="{% url 'edit_game' game.id %}" class="text-white y-1 rounded-lg transform transition-all hover:scale-105">
                         <i class="fas fa-edit"></i> <!-- Edit icon for game -->
                     </a>
                 </div>
             {% endif %}
 
-            <h1 class="text-3xl font-bold text-white">{{ game.name }}</h1>
-            <p class="text-sm text-gray-400">Release Date: {{ game.release_date }}</p>
-            <p class="mt-4 text-lg text-gray-300">{{ game.description }}</p>
-            <div class="mt-6 flex items-center justify-between">
-                <div>
-                    <span class="text-xl font-semibold text-gray-300">Favorited by {{ game.liked_by.count }} people</span>
+            <!-- Game details with image on left and text on right -->
+            <div class="flex flex-col md:flex-row gap-6 items-start">
+                <div class="md:w-1/3 flex-shrink-0">
+                    <div class="relative overflow-hidden rounded-lg shadow-xl">
+                        <div class="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                        <div class="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-blue-500 opacity-30 blur group-hover:opacity-100 transition duration-300"></div>
+                        <img src="{{ game.image_url }}" alt="{{ game.name }}" class="relative rounded-lg w-full object-cover z-10">
+
+                    </div>
                 </div>
-                <div>
-                    <!-- Like/Unlike button with icons -->
-                    {% if user in game.liked_by.all %}
-                        <a href="{% url 'like_game' game.id %}" class="text-red-500 hover:text-red-600 transform transition-all hover:scale-110">
-                            <i class="fas fa-heart"></i> <!-- Unlike icon -->
-                        </a>
-                    {% else %}
-                        <a href="{% url 'like_game' game.id %}" class="text-blue-500 hover:text-blue-600 transform transition-all hover:scale-110">
-                            <i class="far fa-heart"></i> <!-- Like icon -->
-                        </a>
-                    {% endif %}
+
+                <div class="md:w-2/3">
+                    <h1 class="text-3xl font-bold text-white">{{ game.name }}</h1>
+                    <p class="text-sm text-gray-400">Release Date: {{ game.release_date }}</p>
+
+                    <!-- Description with read more functionality -->
+                    <div class="mt-4 text-lg text-gray-300 relative" id="descriptionContainer">
+                        <!-- Short description (visible by default) -->
+                        <div id="shortDescription" class="block">
+                            {{ game.description|truncatechars:500 }}
+                            {% if game.description|length > 500 %}
+                                <button id="readMoreBtn" class="text-blue-400 hover:text-blue-300 font-medium ml-1">Read more</button>
+                            {% endif %}
+                        </div>
+
+                        <!-- Full description (hidden by default) -->
+                        <div id="fullDescription" class="hidden">
+                            {{ game.description }}
+                            <button id="readLessBtn" class="text-blue-400 hover:text-blue-300 font-medium ml-1">Read less</button>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex items-center justify-between">
+                        <div>
+                            <span class="text-xl font-semibold text-gray-300">Favorited by {{ game.liked_by.count }} people</span>
+                        </div>
+                        <div>
+                        <!-- Like/Unlike button with bigger icons -->
+                        {% if user in game.liked_by.all %}
+                            <a href="{% url 'like_game' game.id %}" class="text-red-500 hover:text-red-600 transform transition-all hover:scale-110">
+                                <i class="fas fa-heart text-3xl"></i> <!-- Unlike icon -->
+                            </a>
+                        {% else %}
+                            <a href="{% url 'like_game' game.id %}" class="text-white-500 hover:text-red-600 transform transition-all hover:scale-110">
+                                <i class="far fa-heart text-3xl"></i> <!-- Like icon -->
+                            </a>
+                        {% endif %}
+
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Log section -->
         <div class="bg-gray-800 shadow-lg rounded-lg p-6 mb-8 transform transition-all hover:scale-105">
-            <h2 class="text-2xl font-semibold text-white mb-4">Game Logs</h2>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-semibold text-white">Game Logs</h2>
 
-            <!-- Log Add Button -->
-            {% if user %}
-                <a href="{% url 'add_log' game.id %}" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transform transition-all hover:scale-105 mb-4">
-                    <i class="fas fa-plus"></i>
-                </a>
-            {% endif %}
+                <!-- Add Log Button (purple theme) -->
+                {% if user %}
+                    <a href="{% url 'add_log' game.id %}" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transform transition-all hover:scale-105">
+                        <i class="fas fa-plus"></i> Add Log
+                    </a>
+                {% endif %}
+            </div>
 
             {% if logs_with_notes %}
                 <div class="space-y-4">
                     {% for log in logs_with_notes.all %}
-                        <div class="border-b pb-4">
-                            <p class="font-semibold text-white">{{ log.user.username }}'s Log:</p>
-                            <p class="text-gray-300">Status: {{ log.get_status_display }}</p>
-                            {% if log.notes %}
-                                <p class="text-gray-300">Notes: {{ log.notes }}</p>
-                            {% endif %}
-                            {% if log.rating %}
-                                <p class="text-gray-300">Rating: {{ log.rating }}/10</p>
-                            {% endif %}
-                            {% if log.hours_played %}
-                                <p class="text-gray-300">Hours Played: {{ log.hours_played }}</p>
-                            {% endif %}
-                            <p class="text-sm text-gray-400">Logged on {{ log.created_at|date:"F j, Y, H:i" }}</p>
+                        <div class="text-white rounded-lg shadow-md p-4 space-y-4 transform transition-all hover:scale-105">
+                            <!-- Log details -->
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center space-x-2">
+                                    <!-- Status with Icon -->
+                                    {% if log.status == 'played' %}
+                                        <i class="fas fa-play-circle text-green-500"></i>
+                                        <span class="text-green-500">Played</span>
+                                    {% elif log.status == 'abandoned' %}
+                                        <i class="fas fa-times-circle text-red-500"></i>
+                                        <span class="text-red-500">Abandoned</span>
+                                    {% elif log.status == 'shelved' %}
+                                        <i class="fas fa-box text-yellow-500"></i>
+                                        <span class="text-yellow-500">Shelved</span>
+                                    {% elif log.status == 'completed' %}
+                                        <i class="fas fa-check-circle text-blue-500"></i>
+                                        <span class="text-blue-500">Completed</span>
+                                    {% elif log.status == 'wishlist' %}
+                                        <i class="fas fa-heart text-pink-500"></i>
+                                        <span class="text-pink-500">Wishlist</span>
+                                    {% endif %}
+                                </div>
 
+                                <p class="text-sm text-gray-400">Logged on {{ log.created_at|date:"F j, Y, H:i" }}</p>
+                            </div>
+
+                            <!-- Log Notes and Additional Information(Rating etc.) -->
+                            <!-- user who created the log should be displayed -->
+                        <a href="{% url 'view_profile' log.user.id %}" class="text-blue-400 hover:text-blue-500">
+                            <p class="font-semibold text-white">{{ log.user.username }}'s log:</p>
+                        </a>
+                            <p class="mt-2 text-gray-300">{{ log.notes|slice:":120" }}...</p>
+                            <p class="mt-1 text-gray-400">{{ log.hours_played }} hours played.</p>
+                            <p class="mt-1 text-gray-400">Rating: {{ log.rating }}/5</p>
+
+                            <!-- Edit and Delete buttons for user logs -->
                             {% if log.user == request.user %}
-                                <div class="mt-2 space-x-2">
-                                    <a href="{% url 'edit_log' log.id %}" class="text-blue-500 hover:scale-110 transform transition-all">
-                                        <i class="fas fa-edit"></i> <!-- Edit icon -->
+                                <div class="mt-4 flex space-x-4">
+                                    <a href="{% url 'edit_log' log.id %}" class="text-blue-400 hover:text-blue-500">
+                                        <i class="fas fa-edit"></i> Edit
                                     </a>
-                                    <a href="{% url 'delete_log' log.id %}" class="text-red-500 hover:scale-110 transform transition-all">
-                                        <i class="fas fa-trash-alt"></i> <!-- Delete icon -->
-                                    </a>
+                                    <form action="{% url 'delete_log' log.id %}" method="post" onsubmit="return confirm('Are you sure you want to delete this log?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="text-red-400 hover:text-red-500">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </form>
                                 </div>
                             {% endif %}
                         </div>
@@ -94,7 +153,9 @@
                 <div class="space-y-4">
                     {% for comment in comments %}
                         <div class="border-b pb-4">
+                        <a href="{% url 'view_profile' comment.user.id %}" class="text-blue-500 hover:text-blue-600 transform transition-all hover:scale-110">
                             <p class="font-semibold text-white">{{ comment.user.username }} says:</p>
+                        </a>
                             <p class="text-gray-300">{{ comment.text }}</p>
                             <p class="text-sm text-gray-400">Posted on {{ comment.created_at|date:"F j, Y, H:i" }}</p>
                             <p class="text-sm text-gray-400">Likes: {{ comment.likes.count }}</p>
@@ -166,4 +227,28 @@
             </form>
         </div>
     </div>
+
+    <!-- JavaScript for Read More/Read Less functionality -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const readMoreBtn = document.getElementById('readMoreBtn');
+            const readLessBtn = document.getElementById('readLessBtn');
+            const shortDescription = document.getElementById('shortDescription');
+            const fullDescription = document.getElementById('fullDescription');
+
+            if (readMoreBtn) {
+                readMoreBtn.addEventListener('click', function() {
+                    shortDescription.classList.add('hidden');
+                    fullDescription.classList.remove('hidden');
+                });
+            }
+
+            if (readLessBtn) {
+                readLessBtn.addEventListener('click', function() {
+                    fullDescription.classList.add('hidden');
+                    shortDescription.classList.remove('hidden');
+                });
+            }
+        });
+    </script>
 {% endblock %}

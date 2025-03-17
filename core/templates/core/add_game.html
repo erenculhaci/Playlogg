@@ -6,7 +6,7 @@
     <div class="flex justify-center items-center min-h-screen">
         <div class="w-full max-w-2xl p-8 bg-gray-800 rounded-lg shadow-xl transform transition-all hover:scale-105">
             <h1 class="text-4xl font-bold text-center text-white mb-6">Add a New Game</h1>
-            <form method="post" class="space-y-6">
+            <form method="post" class="space-y-6" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="space-y-2">
                     <label for="name" class="text-lg font-semibold text-white">Game Name:</label>
@@ -23,8 +23,17 @@
                     <input type="date" name="release_date" id="release_date" class="w-full p-3 text-white bg-transparent border-2 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all" required>
                 </div>
 
+                <div class="space-y-2">
+                    <label for="image" class="text-lg font-semibold text-white">Game Image:</label>
+                    <div class="flex items-center space-x-2">
+                        <input type="file" name="image" id="image" accept="image/*" class="w-full p-3 text-white bg-transparent border-2 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all">
+                    </div>
+                    <div class="mt-2" id="image-preview-container" style="display: none;">
+                        <img id="image-preview" class="max-h-48 rounded-lg" alt="Image preview">
+                    </div>
+                </div>
+
                 <div class="flex justify-center">
-                    <!-- Minimal + button with smooth transition -->
                     <button type="submit" class="w-12 h-12 flex justify-center items-center text-white font-bold text-3xl bg-purple-600 rounded-full shadow-lg hover:bg-purple-700 focus:outline-none transform transition-all hover:scale-110">
                         +
                     </button>
@@ -32,4 +41,24 @@
             </form>
         </div>
     </div>
+
+    <script>
+        // Image preview functionality
+        document.getElementById('image').addEventListener('change', function(e) {
+            const previewContainer = document.getElementById('image-preview-container');
+            const preview = document.getElementById('image-preview');
+            const file = e.target.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            } else {
+                previewContainer.style.display = 'none';
+            }
+        });
+    </script>
 {% endblock %}

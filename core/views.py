@@ -10,6 +10,7 @@ from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.db.models import Q
+import os
 
 # Home page view
 def home(request):
@@ -97,25 +98,6 @@ def view_profile(request, user_id):
         'all_logs_url': all_logs_url
     })
 
-# Add a game view
-@login_required
-def add_game(request):
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        description = request.POST.get('description')
-        release_date = request.POST.get('release_date')
-
-        # Create the game and assign the logged-in user to 'added_by'
-        game = Game.objects.create(
-            name=name,
-            description=description,
-            release_date=release_date,
-            added_by=request.user
-        )
-        return redirect('home')
-    return render(request, 'core/add_game.html')
-
-
 def all_logs(request, user_id):
     user = get_object_or_404(User, id=user_id)
     status_filter = request.GET.get('status', None)
@@ -136,6 +118,32 @@ def all_logs(request, user_id):
     })
 
 
+# Update the add_game view to handle image uploads
+@login_required
+def add_game(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+        release_date = request.POST.get('release_date')
+
+        # Create the game and assign the logged-in user to 'added_by'
+        game = Game.objects.create(
+            name=name,
+            description=description,
+            release_date=release_date,
+            added_by=request.user
+        )
+
+        # Handle the image upload
+        if 'image' in request.FILES:
+            game.image = request.FILES['image']
+            game.save()
+
+        return redirect('home')
+    return render(request, 'core/add_game.html')
+
+
+# Update the edit_game view to handle image updates
 @login_required
 def edit_game(request, game_id):
     game = get_object_or_404(Game, id=game_id)
@@ -150,6 +158,22 @@ def edit_game(request, game_id):
         game.name = request.POST.get('name')
         game.description = request.POST.get('description')
         game.release_date = request.POST.get('release_date')
+
+        # Handle image updates
+        if 'image' in request.FILES:
+            # If there's an existing image, delete it
+            if game.image and game.image.name != 'game_images/default_game.jpg':
+                if os.path.isfile(game.image.path):
+                    os.remove(game.image.path)
+
+            # Save the new image
+            game.image = request.FILES['image']
+
+        # Handle image removal if requested
+        if request.POST.get('remove_image') == 'on' and game.image and game.image.name != 'game_images/default_game.jpg':
+            if os.path.isfile(game.image.path):
+                os.remove(game.image.path)
+            game.image = None
 
         game.save()
         messages.success(request, 'Game details updated successfully!')
@@ -232,7 +256,8 @@ def edit_log(request, log_id):
         form = GameLogForm(request.POST, instance=log)
         if form.is_valid():
             form.save()
-            return redirect('game_detail', game_id=log.game.id)
+            referer_url = request.META.get('HTTP_REFERER')
+            return redirect (referer_url if referer_url else 'game_detail', game_id=log.game.id)
     else:
         form = GameLogForm(instance=log)
 
@@ -245,8 +270,9 @@ def edit_log(request, log_id):
 def delete_log(request, log_id):
     log = get_object_or_404(GameLog, id=log_id, user=request.user)
     game_id = log.game.id
+    referer_url = request.META.get('HTTP_REFERER')
     log.delete()
-    return redirect('game_detail', game_id=game_id)
+    return redirect(referer_url if referer_url else 'game_detail', game_id=game_id)
 
 def get_games_by_status(user, status=None):
     if status:

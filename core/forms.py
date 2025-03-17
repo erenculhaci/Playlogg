@@ -11,12 +11,20 @@ class GameLogForm(forms.ModelForm):
             }),
             'notes': forms.Textarea(attrs={
                 'class': 'w-full p-3 bg-gray-800 text-white text-lg border border-gray-600 rounded-lg transition-all duration-300 ease-in-out focus:border-blue-500 focus:ring focus:ring-blue-300/50 bg-gradient-to-br from-gray-700/20 to-gray-800/30 hover:shadow-lg hover:shadow-blue-500/30',
-                'rows': 3
+                'rows': 3,
+                'placeholder': 'Enter your notes here...'
             }),
             'rating': forms.NumberInput(attrs={
-                'class': 'w-full p-3 bg-gray-800 text-white text-lg border border-gray-600 rounded-lg transition-all duration-300 ease-in-out focus:border-blue-500 focus:ring focus:ring-blue-300/50 bg-gradient-to-br from-gray-700/20 to-gray-800/30 hover:shadow-lg hover:shadow-blue-500/30'
+                'class': 'w-full p-3 bg-gray-800 text-white text-lg border border-gray-600 rounded-lg transition-all duration-300 ease-in-out focus:border-blue-500 focus:ring focus:ring-blue-300/50 bg-gradient-to-br from-gray-700/20 to-gray-800/30 hover:shadow-lg hover:shadow-blue-500/30',
+                'min': 0,
+                'max': 5,
+                'step': 0.5,
+                'placeholder': 'Enter your rating here...'
             }),
             'hours_played': forms.NumberInput(attrs={
-                'class': 'w-full p-3 bg-gray-800 text-white text-lg border border-gray-600 rounded-lg transition-all duration-300 ease-in-out focus:border-blue-500 focus:ring focus:ring-blue-300/50 bg-gradient-to-br from-gray-700/20 to-gray-800/30 hover:shadow-lg hover:shadow-blue-500/30'
+                'class': 'w-full p-3 bg-gray-800 text-white text-lg border border-gray-600 rounded-lg transition-all duration-300 ease-in-out focus:border-blue-500 focus:ring focus:ring-blue-300/50 bg-gradient-to-br from-gray-700/20 to-gray-800/30 hover:shadow-lg hover:shadow-blue-500/30',
+                'min': 0,
+                'placeholder': 'Enter your hours played here...',
+                'step': 5,
             }),
         }
