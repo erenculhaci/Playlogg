@@ -14,6 +14,7 @@ import os
 from django.contrib.auth.hashers import check_password
 from django.db import transaction
 from django.core.paginator import Paginator
+import json
 
 # Home page view
 def home(request):
@@ -198,19 +199,26 @@ def all_logs(request, user_id):
     })
 
 
-# Update the add_game view to handle image uploads
 @login_required
 def add_game(request):
     if request.method == 'POST':
         name = request.POST.get('name')
         description = request.POST.get('description')
         release_date = request.POST.get('release_date')
+        studio = request.POST.get('studio')
+
+        # Parse JSON strings to Python lists
+        genres = json.loads(request.POST.get('genres', '[]'))
+        platforms = json.loads(request.POST.get('platforms', '[]'))
 
         # Create the game and assign the logged-in user to 'added_by'
         game = Game.objects.create(
             name=name,
             description=description,
             release_date=release_date,
+            studio=studio,
+            genres=genres,
+            platforms=platforms,
             added_by=request.user
         )
 
@@ -223,7 +231,6 @@ def add_game(request):
     return render(request, 'core/add_game.html')
 
 
-# Update the edit_game view to handle image updates
 @login_required
 def edit_game(request, game_id):
     game = get_object_or_404(Game, id=game_id)
@@ -238,6 +245,16 @@ def edit_game(request, game_id):
         game.name = request.POST.get('name')
         game.description = request.POST.get('description')
         game.release_date = request.POST.get('release_date')
+        game.studio = request.POST.get('studio')
+
+        # Parse JSON strings to Python lists
+        genres = request.POST.get('genres', '[]')
+        platforms = request.POST.get('platforms', '[]')
+
+        if genres:
+            game.genres = json.loads(genres)
+        if platforms:
+            game.platforms = json.loads(platforms)
 
         # Handle image updates
         if 'image' in request.FILES:
@@ -250,7 +267,8 @@ def edit_game(request, game_id):
             game.image = request.FILES['image']
 
         # Handle image removal if requested
-        if request.POST.get('remove_image') == 'on' and game.image and game.image.name != 'game_images/default_game.jpg':
+        if request.POST.get(
+                'remove_image') == 'on' and game.image and game.image.name != 'game_images/default_game.jpg':
             if os.path.isfile(game.image.path):
                 os.remove(game.image.path)
             game.image = None

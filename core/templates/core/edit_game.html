@@ -61,6 +61,57 @@
             </div>
           </div>
 
+        <div class="mb-6">
+          <label for="studio" class="block text-lg font-semibold text-purple-300 mb-2">Studio/Developer</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+            </div>
+            <input type="text" name="studio" id="studio" value="{{ game.studio }}" class="pl-10 w-full p-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300">
+          </div>
+        </div>
+
+        <!-- Genres Tag Input -->
+        <div class="mb-6">
+          <label for="genre-input" class="block text-lg font-semibold text-purple-300 mb-2">Genres</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              </svg>
+            </div>
+            <div class="pl-10 w-full p-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-transparent transition-all duration-300">
+              <div class="flex flex-wrap gap-2 mb-2" id="genres-container">
+                <!-- Existing genres will be added here by script -->
+              </div>
+              <input type="text" id="genre-input" placeholder="Add genres (e.g. Action, RPG, Strategy)" class="w-full bg-transparent focus:outline-none text-white">
+              <input type="hidden" name="genres" id="genres-hidden">
+            </div>
+          </div>
+        </div>
+
+        <!-- Platforms Tag Input -->
+        <div class="mb-6">
+          <label for="platform-input" class="block text-lg font-semibold text-purple-300 mb-2">Platforms</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div class="pl-10 w-full p-3 bg-gray-700 border-2 border-gray-600 rounded-xl text-white focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-transparent transition-all duration-300">
+              <div class="flex flex-wrap gap-2 mb-2" id="platforms-container">
+                <!-- Existing platforms will be added here by script -->
+              </div>
+              <input type="text" id="platform-input" placeholder="Add platforms (e.g. PC, PS5, Xbox)" class="w-full bg-transparent focus:outline-none text-white">
+              <input type="hidden" name="platforms" id="platforms-hidden">
+            </div>
+          </div>
+        </div>
+
+
           <div class="mb-6">
             <label class="block text-lg font-semibold text-purple-300 mb-2">Game Image</label>
 
@@ -142,5 +193,103 @@
       previewContainer.style.display = 'none';
     }
   });
+
+    // For Genres
+  const genreInput = document.getElementById('genre-input');
+  const genresContainer = document.getElementById('genres-container');
+  const genresHidden = document.getElementById('genres-hidden');
+  let genres = [];
+
+  // For Platforms
+  const platformInput = document.getElementById('platform-input');
+  const platformsContainer = document.getElementById('platforms-container');
+  const platformsHidden = document.getElementById('platforms-hidden');
+  let platforms = [];
+
+  {% if game.genres %}
+  // For edit page - initialize with existing genres
+  genres = {{ game.genres|safe }};
+  updateGenreTags();
+  {% endif %}
+
+  {% if game.platforms %}
+  // For edit page - initialize with existing platforms
+  platforms = {{ game.platforms|safe }};
+  updatePlatformTags();
+  {% endif %}
+
+  // Genre tag functionality
+  genreInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      const value = genreInput.value.trim();
+      if (value && !genres.includes(value)) {
+        genres.push(value);
+        updateGenreTags();
+      }
+      genreInput.value = '';
+    }
+  });
+
+  function updateGenreTags() {
+    genresContainer.innerHTML = '';
+    genresHidden.value = JSON.stringify(genres);
+
+    genres.forEach(genre => {
+      const tag = document.createElement('div');
+      tag.className = 'bg-purple-600 text-white px-3 py-1 rounded-full flex items-center';
+      tag.innerHTML = `
+        ${genre}
+        <button type="button" class="ml-2 focus:outline-none" onclick="removeGenre('${genre}')">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      `;
+      genresContainer.appendChild(tag);
+    });
+  }
+
+  function removeGenre(genre) {
+    genres = genres.filter(g => g !== genre);
+    updateGenreTags();
+  }
+
+  // Platform tag functionality
+  platformInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      const value = platformInput.value.trim();
+      if (value && !platforms.includes(value)) {
+        platforms.push(value);
+        updatePlatformTags();
+      }
+      platformInput.value = '';
+    }
+  });
+
+  function updatePlatformTags() {
+    platformsContainer.innerHTML = '';
+    platformsHidden.value = JSON.stringify(platforms);
+
+    platforms.forEach(platform => {
+      const tag = document.createElement('div');
+      tag.className = 'bg-blue-600 text-white px-3 py-1 rounded-full flex items-center';
+      tag.innerHTML = `
+        ${platform}
+        <button type="button" class="ml-2 focus:outline-none" onclick="removePlatform('${platform}')">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      `;
+      platformsContainer.appendChild(tag);
+    });
+  }
+
+  function removePlatform(platform) {
+    platforms = platforms.filter(p => p !== platform);
+    updatePlatformTags();
+  }
 </script>
 {% endblock %}

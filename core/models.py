@@ -2,14 +2,15 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
+from django.db.models import JSONField
 
 class Game(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField()
     release_date = models.DateField()
-    studio = models.CharField(max_length=100) # eklenecek
-    genres = models.CharField(max_length=200) # eklenecek
-    platforms = models.CharField(max_length=200) # eklenecek
+    studio = models.CharField(max_length=100) # Developer or studio
+    genres = JSONField(default=list, blank=True) # List of genres
+    platforms = JSONField(default=list, blank=True) # List of platforms
     likes = models.IntegerField(default=0)
     liked_by = models.ManyToManyField(User, related_name='liked_games', blank=True)
     added_by = models.ForeignKey(User, on_delete=models.CASCADE)
