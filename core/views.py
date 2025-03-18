@@ -9,14 +9,42 @@ from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.db.models import Q
+from django.db.models import Count, F, Q
 import os
 from django.contrib.auth.hashers import check_password
 from django.db import transaction
+from django.core.paginator import Paginator
 
 # Home page view
 def home(request):
-    games = Game.objects.all()
+    # Get the sort parameter from the URL
+    sort = request.GET.get('sort', 'recent')  # Default to 'recent' if not specified
+
+    # Base queryset
+    games_queryset = Game.objects.all()
+
+    # Apply sorting based on the sort parameter
+    if sort == 'recent':
+        # Sort by creation date (assuming you want most recent first)
+        games_queryset = games_queryset.order_by('-id')  # Using id as proxy for creation date
+    elif sort == 'popular':
+        # Annotate games with counts of logs, comments, and likes
+        games_queryset = games_queryset.annotate(
+            log_count=Count('logs', distinct=True),
+            comment_count=Count('comments', distinct=True),
+            like_count=Count('liked_by', distinct=True),
+            # Calculate total popularity score
+            popularity_score=F('log_count') + F('comment_count') + F('like_count')
+        ).order_by('-popularity_score')
+    elif sort == 'name':
+        # Sort alphabetically by name
+        games_queryset = games_queryset.order_by('name')
+
+    # Pagination
+    paginator = Paginator(games_queryset, 12)  # Show 12 games per page
+    page = request.GET.get('page')
+    games = paginator.get_page(page)
+
     return render(request, 'core/home.html', {'games': games})
 
 def login_redirect(request):
