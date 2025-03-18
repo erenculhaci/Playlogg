@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.db.models import Count, F, Q
+from django.db.models import Count, F, Q, Avg
 import os
 from django.contrib.auth.hashers import check_password
 from django.db import transaction
@@ -428,7 +428,8 @@ def game_detail(request, game_id):
     game = get_object_or_404(Game, id=game_id)
     comments = game.comments.filter(parent__isnull=True).order_by('-created_at')
     logs_with_notes = game.logs.filter(notes__isnull=False).exclude(notes="").order_by('-created_at')
-    return render(request, 'core/game_detail.html', {'game': game, 'comments': comments, 'logs_with_notes': logs_with_notes})
+    average_rating = game.logs.filter(rating__isnull=False).aggregate(avg_rating=Avg('rating'))['avg_rating']
+    return render(request, 'core/game_detail.html', {'game': game, 'comments': comments, 'logs_with_notes': logs_with_notes, 'average_rating': average_rating})
 
 def user_logout(request):
     logout(request)
