@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load custom_filters %}
 
 {% block title %}{{ game.name }} - Playlogg{% endblock %}
 
@@ -130,6 +131,103 @@
                 </div>
             </div>
         </div>
+
+    <!-- Rating section -->
+<div class="bg-black bg-opacity-75 rounded-lg shadow-xl overflow-hidden mb-8">
+    <div class="p-6">
+        <h2 class="text-2xl font-semibold text-white mb-6">Player Ratings</h2>
+
+        <div class="flex flex-col md:flex-row gap-8">
+            <!-- Average Rating Card -->
+            <div class="md:w-1/3 bg-gray-800 rounded-lg p-6 flex flex-col items-center justify-center transform transition-all duration-300 hover:scale-105">
+                <h3 class="text-gray-300 text-lg mb-2">Average Rating</h3>
+
+                {% if average_rating %}
+                    <div class="text-5xl font-bold text-white mb-2">{{ average_rating|floatformat:1 }}</div>
+                    <div class="flex items-center">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= average_rating|floatformat:0|add:"0" %}
+                                <i class="fas fa-star text-yellow-500 text-2xl"></i>
+                            {% elif forloop.counter <= average_rating|floatformat:0|add:"0"|add:"1" and average_rating|floatformat:1|slice:"-1:" != "0" %}
+                                <i class="fas fa-star-half-alt text-yellow-500 text-2xl"></i>
+                            {% else %}
+                                <i class="far fa-star text-yellow-500 text-2xl"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <p class="text-gray-400 mt-2">Based on {{ total_ratings }} ratings</p>
+                {% else %}
+                    <div class="text-3xl font-bold text-gray-500 mb-2">No ratings yet</div>
+                    <div class="flex items-center">
+                        {% for i in "12345" %}
+                            <i class="far fa-star text-gray-500 text-2xl"></i>
+                        {% endfor %}
+                    </div>
+                    <p class="text-gray-500 mt-2">Be the first to rate this game!</p>
+                {% endif %}
+            </div>
+
+            <!-- Rating Distribution Chart -->
+            <div class="md:w-2/3 bg-gray-800 rounded-lg p-6">
+                <h3 class="text-gray-300 text-lg mb-4">Rating Distribution</h3>
+
+                {% if total_ratings > 0 %}
+                    <div class="space-y-3">
+                        {% for item in rating_distribution %}
+                            <div class="flex items-center">
+                                <div class="w-8 text-right text-gray-400 mr-2">{{ item.rating }}</div>
+
+                                <!-- Star icons -->
+                                <div class="w-24 flex items-center">
+                                    {% if item.rating|floatformat:1|slice:"-1:" == "0" %}
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= item.rating %}
+                                                <i class="fas fa-star text-yellow-500 text-xs"></i>
+                                            {% else %}
+                                                <i class="far fa-star text-gray-500 text-xs"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter < item.rating|floatformat:0|add:"0" %}
+                                                <i class="fas fa-star text-yellow-500 text-xs"></i>
+                                            {% elif forloop.counter == item.rating|floatformat:0|add:"0" %}
+                                                <i class="fas fa-star-half-alt text-yellow-500 text-xs"></i>
+                                            {% else %}
+                                                <i class="far fa-star text-gray-500 text-xs"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <!-- Progress bar -->
+                                <div class="flex-1 ml-2">
+                                    <div class="bg-gray-700 rounded-full h-4 overflow-hidden">
+                                        {% if total_ratings > 0 %}
+                                            <div class="bg-purple-600 h-full rounded-full" style="width: {{ item.count|floatformat:0|mul:100|div:total_ratings|floatformat:0 }}%"></div>
+                                        {% else %}
+                                            <div class="bg-purple-600 h-full rounded-full" style="width: 0%"></div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Count -->
+                                <div class="w-12 text-center text-gray-400 ml-2">{{ item.count }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="flex items-center justify-center h-48 text-gray-500">
+                        <div class="text-center">
+                            <i class="fas fa-chart-bar text-4xl mb-2"></i>
+                            <p>No rating data available</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
 
         <!-- Tabs for Logs and Comments -->
         <div class="mb-8">
