@@ -77,15 +77,21 @@
                                 <i class="fas fa-calendar-alt mr-1"></i>
                                 <span>{{ game.release_date|date:"Y" }}</span>
 
-                                <span class="mx-2">•</span>
+                                <span class="mx-1">•</span>
 
                                 <i class="fas fa-heart mr-1 text-red-500"></i>
                                 <span>{{ game.liked_by.count }}</span>
 
-                                <span class="mx-2">•</span>
+                                <span class="mx-1">•</span>
+
 
                                 <i class="fas fa-comment mr-1 text-purple-500"></i>
-                                <span>{{ game.comment_set.count }}</span>
+                                <span>{{ game.comments.count }}</span>
+
+                                <span class="mx-1">•</span>
+
+                                <i class="fas fa-clipboard-list mr-1 text-green-400"></i>
+                                <span>{{ game.logs.count }}</span>
                             </div>
 
                             <p class="text-gray-300 text-sm mt-3 line-clamp-2">{{ game.description|truncatechars:100 }}</p>
