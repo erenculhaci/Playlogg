@@ -50,6 +50,118 @@
                             <i class="fas fa-chevron-down text-xs"></i>
                         </div>
                     </div>
+<!-- Filter Button -->
+<button id="filterButton" class="bg-purple-600 border border-transparent text-white px-4 py-2 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+    <i class="fas fa-filter mr-2"></i> Filters
+</button>
+
+<!-- Filter Panel (hidden by default) -->
+<div id="filterPanel" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
+    <div class="bg-gray-900 rounded-lg shadow-2xl p-4 sm:p-6 w-full max-w-3xl max-h-[80vh] overflow-y-auto" style="max-height: 70vh;">
+        <div class="flex justify-between items-center mb-4 sticky top-0 bg-gray-900 pb-2 border-b border-gray-700">
+            <h3 class="text-xl sm:text-2xl font-bold text-white">Filter Games</h3>
+            <button id="closeFilter" class="text-gray-400 hover:text-white p-2">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        <form action="{% url 'home' %}" method="get" class="space-y-5">
+            <!-- Keep the current sort parameter when filtering -->
+            {% if request.GET.sort %}
+                <input type="hidden" name="sort" value="{{ request.GET.sort }}">
+            {% endif %}
+
+            <!-- Genres -->
+            <div>
+                <label class="block text-white text-lg mb-2">Genres</label>
+                <div class="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-2">
+                    {% for genre in genres %}
+                    <div class="flex items-center p-2 bg-gray-800 rounded-md hover:bg-gray-700 transition-colors">
+                        <input type="checkbox" name="genres" value="{{ genre }}" id="genre_{{ forloop.counter }}"
+                            class="w-4 h-4 rounded border-gray-700 bg-gray-800 text-purple-600 focus:ring-purple-500"
+                            {% if genre in current_filters.genres %}checked{% endif %}>
+                        <label for="genre_{{ forloop.counter }}" class="ml-2 text-gray-300 cursor-pointer flex-1 truncate">{{ genre }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Platforms -->
+            <div>
+                <label class="block text-white text-lg mb-2">Platforms</label>
+                <div class="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-2">
+                    {% for platform in platforms %}
+                    <div class="flex items-center p-2 bg-gray-800 rounded-md hover:bg-gray-700 transition-colors">
+                        <input type="checkbox" name="platforms" value="{{ platform }}" id="platform_{{ forloop.counter }}"
+                            class="w-4 h-4 rounded border-gray-700 bg-gray-800 text-purple-600 focus:ring-purple-500"
+                            {% if platform in current_filters.platforms %}checked{% endif %}>
+                        <label for="platform_{{ forloop.counter }}" class="ml-2 text-gray-300 cursor-pointer flex-1 truncate">{{ platform }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Studio -->
+            <div>
+                <label class="block text-white text-lg mb-2">Studio</label>
+                <select name="studio" class="w-full bg-gray-800 border border-gray-700 text-white py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <option value="">Any Studio</option>
+                    {% for studio in studios %}
+                    <option value="{{ studio }}" {% if studio == current_filters.studio %}selected{% endif %}>{{ studio }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Release Year Range -->
+            <div>
+                <label class="block text-white text-lg mb-2">Release Year</label>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <div class="w-full sm:w-1/2">
+                        <label class="block text-gray-400 text-sm">From</label>
+                        <input type="number" name="year_from" min="1980" max="2025" step="1"
+                            class="w-full bg-gray-800 border border-gray-700 text-white py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            value="{{ current_filters.year_from }}">
+                    </div>
+                    <div class="w-full sm:w-1/2">
+                        <label class="block text-gray-400 text-sm">To</label>
+                        <input type="number" name="year_to" min="1980" max="2025" step="1"
+                            class="w-full bg-gray-800 border border-gray-700 text-white py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            value="{{ current_filters.year_to }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rating Range -->
+            <div>
+                <label class="block text-white text-lg mb-2">Average Rating</label>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <div class="w-full sm:w-1/2">
+                        <label class="block text-gray-400 text-sm">From</label>
+                        <input type="number" name="rating_from" min="0" max="10" step="0.1"
+                            class="w-full bg-gray-800 border border-gray-700 text-white py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            value="{{ current_filters.rating_from }}">
+                    </div>
+                    <div class="w-full sm:w-1/2">
+                        <label class="block text-gray-400 text-sm">To</label>
+                        <input type="number" name="rating_to" min="0" max="10" step="0.1"
+                            class="w-full bg-gray-800 border border-gray-700 text-white py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            value="{{ current_filters.rating_to }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Actions -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-gray-700 sticky bottom-0 bg-gray-900 pt-4 pb-2">
+                <a href="{% url 'home' %}{% if request.GET.sort %}?sort={{ request.GET.sort }}{% endif %}" class="w-full sm:w-auto text-center sm:text-left text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 transition-colors px-4 py-2 rounded-md">
+                    <i class="fas fa-trash-alt mr-1"></i> Clear Filters
+                </a>
+                <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 bg-purple-600 border border-transparent rounded-md font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors">
+                    <i class="fas fa-filter mr-2"></i> Apply Filters
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
                 </div>
             </div>
 
@@ -160,4 +272,36 @@
         </div>
     </div>
 </div>
+
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filterButton = document.getElementById('filterButton');
+    const filterPanel = document.getElementById('filterPanel');
+    const closeFilter = document.getElementById('closeFilter');
+    const filterModalContent = filterPanel.querySelector('div'); // Get the inner div
+
+    filterButton.addEventListener('click', function() {
+        filterPanel.classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // Prevent body scrolling
+    });
+
+    closeFilter.addEventListener('click', function() {
+        filterPanel.classList.add('hidden');
+        document.body.style.overflow = ''; // Re-enable body scrolling
+    });
+
+    // Close if clicked outside the panel
+    filterPanel.addEventListener('click', function(e) {
+        if (e.target === filterPanel) {
+            filterPanel.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+    });
+
+    // Prevent clicks inside the modal from closing it
+    filterModalContent.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+});
+</script>
 {% endblock %}

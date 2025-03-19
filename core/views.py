@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
+from django.db.models import Count, F, Case, When, IntegerField, Q, Value, Avg
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from .models import Game, Comment, Profile, GameLog, User
@@ -9,7 +10,6 @@ from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.db.models import Count, F, Case, When, IntegerField, Q, Value, Avg
 import os
 from django.contrib.auth.hashers import check_password
 from django.db import transaction
@@ -17,7 +17,6 @@ from django.core.paginator import Paginator
 import json
 
 
-# Home page view
 def home(request):
     # Get the sort parameter from the URL
     sort = request.GET.get('sort', 'recent')  # Default to 'recent' if not specified
@@ -25,21 +24,51 @@ def home(request):
     # Base queryset
     games_queryset = Game.objects.all()
 
+    # Apply filters
+    # Filter by genres - using AND logic
+    if 'genres' in request.GET:
+        genres = request.GET.getlist('genres')
+        if genres:
+            for genre in genres:
+                games_queryset = games_queryset.filter(genres__contains=[genre])
+
+    # Filter by platforms - using AND logic
+    if 'platforms' in request.GET:
+        platforms = request.GET.getlist('platforms')
+        if platforms:
+            for platform in platforms:
+                games_queryset = games_queryset.filter(platforms__contains=[platform])
+
+    # Filter by studio
+    if 'studio' in request.GET and request.GET['studio']:
+        games_queryset = games_queryset.filter(studio__icontains=request.GET['studio'])
+
+    # Filter by release year
+    if 'year_from' in request.GET and request.GET['year_from']:
+        games_queryset = games_queryset.filter(release_date__year__gte=request.GET['year_from'])
+    if 'year_to' in request.GET and request.GET['year_to']:
+        games_queryset = games_queryset.filter(release_date__year__lte=request.GET['year_to'])
+
+    # Filter by average rating (needs calculation from logs)
+    if 'rating_from' in request.GET or 'rating_to' in request.GET:
+        from django.db.models import Avg
+        games_queryset = games_queryset.annotate(avg_rating=Avg('logs__rating'))
+        if 'rating_from' in request.GET and request.GET['rating_from']:
+            games_queryset = games_queryset.filter(avg_rating__gte=float(request.GET['rating_from']))
+        if 'rating_to' in request.GET and request.GET['rating_to']:
+            games_queryset = games_queryset.filter(avg_rating__lte=float(request.GET['rating_to']))
+
     # Apply sorting based on the sort parameter
     if sort == 'recent':
-        # Sort by creation date (assuming you want most recent first)
-        games_queryset = games_queryset.order_by('-id')  # Using id as proxy for creation date
+        games_queryset = games_queryset.order_by('-id')
     elif sort == 'popular':
-        # Annotate games with counts of logs, comments, and likes
         games_queryset = games_queryset.annotate(
             log_count=Count('logs', distinct=True),
             comment_count=Count('comments', distinct=True),
             like_count=Count('liked_by', distinct=True),
-            # Calculate total popularity score
             popularity_score=F('log_count') + F('comment_count') + F('like_count')
         ).order_by('-popularity_score')
     elif sort == 'name':
-        # Sort alphabetically by name
         games_queryset = games_queryset.order_by('name')
 
     # Pagination
@@ -47,7 +76,32 @@ def home(request):
     page = request.GET.get('page')
     games = paginator.get_page(page)
 
-    return render(request, 'core/home.html', {'games': games})
+    # Get all unique values for filters
+    all_genres = Game.objects.values_list('genres', flat=True).distinct()
+    unique_genres = set()
+    for game_genres in all_genres:
+        if game_genres:
+            for genre in game_genres:
+                unique_genres.add(genre)
+
+    all_platforms = Game.objects.values_list('platforms', flat=True).distinct()
+    unique_platforms = set()
+    for game_platforms in all_platforms:
+        if game_platforms:
+            for platform in game_platforms:
+                unique_platforms.add(platform)
+
+    all_studios = Game.objects.values_list('studio', flat=True).distinct()
+
+    context = {
+        'games': games,
+        'genres': sorted(unique_genres),
+        'platforms': sorted(unique_platforms),
+        'studios': sorted(all_studios),
+        'current_filters': request.GET
+    }
+
+    return render(request, 'core/home.html', context)
 
 def login_redirect(request):
     return HttpResponseRedirect(reverse('login') + '?next=' + request.path)
