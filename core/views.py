@@ -16,7 +16,6 @@ from django.db import transaction
 from django.core.paginator import Paginator
 import json
 
-
 def home(request):
     # Get the sort parameter from the URL
     sort = request.GET.get('sort', 'recent')  # Default to 'recent' if not specified
@@ -24,41 +23,42 @@ def home(request):
     # Base queryset
     games_queryset = Game.objects.all()
 
+    # Get filter parameters
+    genres = request.GET.getlist('genres')
+    platforms = request.GET.getlist('platforms')
+    studio = request.GET.get('studio', '')
+    year_from = request.GET.get('year_from', '')
+    year_to = request.GET.get('year_to', '')
+    rating_from = request.GET.get('rating_from', '')
+    rating_to = request.GET.get('rating_to', '')
+
     # Apply filters
-    # Filter by genres - using AND logic
-    if 'genres' in request.GET:
-        genres = request.GET.getlist('genres')
-        if genres:
-            for genre in genres:
-                games_queryset = games_queryset.filter(genres__contains=[genre])
+    if genres:
+        for genre in genres:
+            games_queryset = games_queryset.filter(genres__contains=[genre])
 
-    # Filter by platforms - using AND logic
-    if 'platforms' in request.GET:
-        platforms = request.GET.getlist('platforms')
-        if platforms:
-            for platform in platforms:
-                games_queryset = games_queryset.filter(platforms__contains=[platform])
+    if platforms:
+        for platform in platforms:
+            games_queryset = games_queryset.filter(platforms__contains=[platform])
 
-    # Filter by studio
-    if 'studio' in request.GET and request.GET['studio']:
-        games_queryset = games_queryset.filter(studio__icontains=request.GET['studio'])
+    if studio:
+        games_queryset = games_queryset.filter(studio__icontains=studio)
 
-    # Filter by release year
-    if 'year_from' in request.GET and request.GET['year_from']:
-        games_queryset = games_queryset.filter(release_date__year__gte=request.GET['year_from'])
-    if 'year_to' in request.GET and request.GET['year_to']:
-        games_queryset = games_queryset.filter(release_date__year__lte=request.GET['year_to'])
+    if year_from:
+        games_queryset = games_queryset.filter(release_date__year__gte=year_from)
+    if year_to:
+        games_queryset = games_queryset.filter(release_date__year__lte=year_to)
 
-    # Filter by average rating (needs calculation from logs)
-    if 'rating_from' in request.GET or 'rating_to' in request.GET:
+    # Rating filter logic
+    if rating_from or rating_to:
         from django.db.models import Avg
         games_queryset = games_queryset.annotate(avg_rating=Avg('logs__rating'))
-        if 'rating_from' in request.GET and request.GET['rating_from']:
-            games_queryset = games_queryset.filter(avg_rating__gte=float(request.GET['rating_from']))
-        if 'rating_to' in request.GET and request.GET['rating_to']:
-            games_queryset = games_queryset.filter(avg_rating__lte=float(request.GET['rating_to']))
+        if rating_from:
+            games_queryset = games_queryset.filter(avg_rating__gte=float(rating_from))
+        if rating_to:
+            games_queryset = games_queryset.filter(avg_rating__lte=float(rating_to))
 
-    # Apply sorting based on the sort parameter
+    # Sort logic
     if sort == 'recent':
         games_queryset = games_queryset.order_by('-id')
     elif sort == 'popular':
@@ -76,7 +76,7 @@ def home(request):
     page = request.GET.get('page')
     games = paginator.get_page(page)
 
-    # Get all unique values for filters
+    # Get filter options
     all_genres = Game.objects.values_list('genres', flat=True).distinct()
     unique_genres = set()
     for game_genres in all_genres:
@@ -93,12 +93,33 @@ def home(request):
 
     all_studios = Game.objects.values_list('studio', flat=True).distinct()
 
+    # Count active filters
+    active_count = 0
+    if genres: active_count += len(genres)
+    if platforms: active_count += len(platforms)
+    if studio: active_count += 1
+    if year_from or year_to: active_count += 1
+    if rating_from or rating_to: active_count += 1
+
+    # Create current_filters dictionary with processed data
+    current_filters = {
+        'genres': genres,
+        'platforms': platforms,
+        'studio': studio,
+        'year_from': year_from,
+        'year_to': year_to,
+        'rating_from': rating_from,
+        'rating_to': rating_to,
+        'active_count': active_count,
+    }
+
     context = {
         'games': games,
         'genres': sorted(unique_genres),
         'platforms': sorted(unique_platforms),
         'studios': sorted(all_studios),
-        'current_filters': request.GET
+        'current_filters': current_filters,
+        'sort': sort
     }
 
     return render(request, 'core/home.html', context)
