@@ -12,3 +12,7 @@ def div(value, arg):
         return float(value) / float(arg)
     except (ValueError, ZeroDivisionError):
         return 0
+
+@register.filter
+def split(value, arg):
+    return value.split(arg)

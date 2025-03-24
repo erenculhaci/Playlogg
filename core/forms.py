@@ -11,7 +11,7 @@ class PasswordResetForm(DjangoPasswordResetForm):
         label='Email',
         max_length=254,
         widget=forms.EmailInput(attrs={
-            'class': 'form-control',
+            'class': 'mt-1 block w-full rounded-md bg-gray-800 border border-gray-700 shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-purple-500 focus:border-purple-500',
             'placeholder': 'Enter your email address'
         })
     )
@@ -21,14 +21,14 @@ class SetPasswordForm(DjangoSetPasswordForm):
     new_password1 = forms.CharField(
         label="New password",
         widget=forms.PasswordInput(attrs={
-            'class': 'form-control',
+            'class': 'mt-1 block w-full rounded-md bg-gray-800 border border-gray-700 shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-purple-500 focus:border-purple-500',
             'placeholder': 'Enter new password'
         }),
     )
     new_password2 = forms.CharField(
         label="Confirm new password",
         widget=forms.PasswordInput(attrs={
-            'class': 'form-control',
+            'class': 'mt-1 block w-full rounded-md bg-gray-800 border border-gray-700 shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-purple-500 focus:border-purple-500',
             'placeholder': 'Confirm new password'
         }),
     )
