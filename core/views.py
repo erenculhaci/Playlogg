@@ -19,8 +19,14 @@ from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.auth.models import User
 from django.contrib import messages
-from .forms import UserRegistrationForm, UserEditForm, ProfileEditForm
+from .forms import UserRegistrationForm, UserEditForm, ProfileEditForm, CustomPasswordChangeForm, PasswordResetForm, SetPasswordForm
 from .models import Profile
+from django.contrib.auth import update_session_auth_hash
+from django.contrib import messages
+from django.contrib.sites.shortcuts import get_current_site
+from django.utils.encoding import force_bytes, force_str
+from django.core.mail import EmailMessage
+from django.utils.crypto import get_random_string
 
 def home(request):
     # Get the sort parameter from the URL
@@ -204,6 +210,91 @@ def user_login(request):
 
     return render(request, 'core/login.html', {'form': form})
 
+# Password reset request view
+def password_reset_request(request):
+    if request.method == 'POST':
+        form = PasswordResetForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            try:
+                user = User.objects.get(email=email)
+                # Generate reset token
+                reset_token = get_random_string(64)
+                user.profile.verification_token = reset_token
+                user.profile.save()
+
+                # Send reset email
+                current_site = get_current_site(request)
+                mail_subject = 'Reset your Playlogg password'
+                message = render_to_string('core/password_reset_email.html', {
+                    'user': user,
+                    'domain': current_site.domain,
+                    'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                    'token': reset_token,
+                })
+                to_email = email
+                email_message = EmailMessage(
+                    mail_subject, message, to=[to_email]
+                )
+                email_message.content_subtype = "html"
+                email_message.send()
+
+                messages.success(request, 'Password reset link has been sent to your email.')
+                return redirect('login')
+            except User.DoesNotExist:
+                # Don't reveal that the user doesn't exist
+                messages.success(request, 'Password reset link has been sent if the email exists.')
+                return redirect('login')
+    else:
+        form = PasswordResetForm()
+
+    return render(request, 'core/password_reset_form.html', {'form': form})
+
+
+# Password reset confirm view
+def password_reset_confirm(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    # Check if token is valid
+    if user is not None and user.profile.verification_token == token:
+        if request.method == 'POST':
+            form = SetPasswordForm(user, request.POST)
+            if form.is_valid():
+                form.save()
+                # Clear the token after successful reset
+                user.profile.verification_token = ''
+                user.profile.save()
+                messages.success(request,
+                                 'Your password has been reset successfully. You can now log in with your new password.')
+                return redirect('login')
+        else:
+            form = SetPasswordForm(user)
+
+        return render(request, 'core/password_reset_confirm.html', {'form': form})
+    else:
+        messages.error(request, 'The password reset link is invalid or has expired.')
+        return redirect('password_reset_request')
+
+
+# Change password view (for logged-in users)
+@login_required
+def change_password(request):
+    if request.method == 'POST':
+        form = CustomPasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            # Keep the user logged in
+            update_session_auth_hash(request, user)
+            messages.success(request, 'Your password has been changed successfully!')
+            return redirect('edit_profile')
+    else:
+        form = CustomPasswordChangeForm(request.user)
+
+    return render(request, 'core/change_password.html', {'form': form})
 
 # Resend verification email
 def resend_verification(request):

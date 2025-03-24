@@ -30,5 +30,8 @@ urlpatterns = [
     # Email verification URLs
     path('verify/<uidb64>/<token>/', views.verify_email, name='verify_email'),
     path('resend-verification/', views.resend_verification, name='resend_verification'),
-
+    # Password reset URLs
+    path('password-reset/', views.password_reset_request, name='password_reset_request'),
+    path('password-reset-confirm/<uidb64>/<token>/', views.password_reset_confirm, name='password_reset_confirm'),
+    path('change-password/', views.change_password, name='change_password'),
 ]
