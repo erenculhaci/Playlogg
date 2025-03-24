@@ -152,6 +152,65 @@
             color: white;
         }
 
+
+        .messages {
+            margin-bottom: 20px;
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .success {
+            background-color: rgba(40, 167, 69, 0.2);
+            border: 1px solid #28a745;
+            color: #155724;
+        }
+
+        .error {
+            background-color: rgba(220, 53, 69, 0.2);
+            border: 1px solid #dc3545;
+            color: #ff6c7c;
+        }
+
+        .warning {
+            background-color: rgba(255, 193, 7, 0.2);
+            border: 1px solid #ffc107;
+            color: #ffd042;
+        }
+
+        .info {
+            background-color: rgba(23, 162, 184, 0.2);
+            border: 1px solid #17a2b8;
+            color: #2eb5cc;
+        }
+
+        .error-message {
+            color: #dc3545;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+
+        .links {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .forgot-password, .resend-verification {
+            text-align: center;
+            color: #7b34dd;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .forgot-password:hover, .resend-verification:hover {
+            text-decoration: underline;
+        }
+
         @keyframes slideInFromLeft {
             0% {
                 transform: translateX(-100%);

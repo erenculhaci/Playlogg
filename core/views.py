@@ -1,18 +1,26 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, logout
 from django.db.models import Count, F, Q, Avg
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import Game, Comment, Profile, GameLog, User
-from .forms import GameLogForm, ProfileEditForm, UserEditForm
-from django.contrib import messages
+from django.contrib.auth.forms import AuthenticationForm
+from .models import Game, Comment, GameLog
+from .forms import GameLogForm
 from django.urls import reverse
 from django.http import HttpResponseRedirect
-from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 import os
 from django.contrib.auth.hashers import check_password
 from django.core.paginator import Paginator
 import json
+from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.sites.shortcuts import get_current_site
+from django.core.mail import EmailMessage
+from django.shortcuts import render, redirect, get_object_or_404
+from django.template.loader import render_to_string
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.contrib.auth.models import User
+from django.contrib import messages
+from .forms import UserRegistrationForm, UserEditForm, ProfileEditForm
+from .models import Profile
 
 def home(request):
     # Get the sort parameter from the URL
@@ -125,32 +133,111 @@ def home(request):
 def login_redirect(request):
     return HttpResponseRedirect(reverse('login') + '?next=' + request.path)
 
-# Register view
+
+# Register view with email verification
 def register(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = UserRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
-            messages.success(request, 'Registration successful!')
-            return redirect('home')
+
+            # Send verification email
+            current_site = get_current_site(request)
+            mail_subject = 'Activate your Playlogg account'
+            message = render_to_string('core/verification_email.html', {
+                'user': user,
+                'domain': current_site.domain,
+                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                'token': user.profile.verification_token,
+            })
+            to_email = form.cleaned_data.get('email')
+            email = EmailMessage(
+                mail_subject, message, to=[to_email]
+            )
+            email.content_subtype = "html"
+            email.send()
+
+            messages.success(request, 'Registration successful! Please check your email to verify your account.')
+            return redirect('login')
     else:
-        form = UserCreationForm()
+        form = UserRegistrationForm()
     return render(request, 'core/register.html', {'form': form})
-# Login view
+
+
+def verify_email(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and user.profile.verification_token == token:
+        user.profile.is_verified = True
+        user.profile.verification_token = ''
+        user.profile.save()
+        login(request, user)
+        messages.success(request, 'Your account has been verified! Welcome to Playlogg.')
+        return redirect('home')
+    else:
+        messages.error(request, 'Activation link is invalid or has expired.')
+        return redirect('login')
+
+
+# Login view with verification check
 def user_login(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
+
+            # Check if user is verified
+            if not user.profile.is_verified:
+                messages.error(request, 'Please verify your email before logging in.')
+                return render(request, 'core/login.html', {'form': form})
+
             login(request, user)
-            return redirect('home')  # Make sure 'home' is a valid URL in your URLs
+            return redirect('home')
         else:
             messages.error(request, 'Invalid login credentials. Please try again.')
     else:
         form = AuthenticationForm()
 
     return render(request, 'core/login.html', {'form': form})
+
+
+# Resend verification email
+def resend_verification(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        try:
+            user = User.objects.get(email=email)
+            if not user.profile.is_verified:
+                # Regenerate token
+                token = user.profile.generate_verification_token()
+
+                # Send verification email
+                current_site = get_current_site(request)
+                mail_subject = 'Activate your Playlogg account'
+                message = render_to_string('core/verification_email.html', {
+                    'user': user,
+                    'domain': current_site.domain,
+                    'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                    'token': token,
+                })
+                to_email = user.email
+                email = EmailMessage(
+                    mail_subject, message, to=[to_email]
+                )
+                email.content_subtype = "html"
+                email.send()
+
+                messages.success(request, 'Verification email has been resent. Please check your inbox.')
+            else:
+                messages.info(request, 'This account is already verified. You can log in.')
+        except User.DoesNotExist:
+            messages.error(request, 'No account found with this email address.')
+
+    return render(request, 'core/resend_verification.html')
 
 
 @login_required

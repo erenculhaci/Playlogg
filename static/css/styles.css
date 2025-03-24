@@ -276,6 +276,7 @@ footer {
 .dropdown-menu:not(.hidden) {
     display: block;
 }
+
 /* Responsive Styles */
 @media (max-width: 768px) {
     .navbar .space-x-6 {

@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -25,4 +26,9 @@ urlpatterns = [
     path('user/<int:user_id>/logs/', views.all_logs, name='all_logs'),  # Yeni URL
     path('search/', views.search, name='search'),
     path('view_profile/<int:user_id>/', views.view_profile, name='view_profile'),
+
+    # Email verification URLs
+    path('verify/<uidb64>/<token>/', views.verify_email, name='verify_email'),
+    path('resend-verification/', views.resend_verification, name='resend_verification'),
+
 ]

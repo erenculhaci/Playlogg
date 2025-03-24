@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resend Verification - Playlogg</title>
+    <link rel="stylesheet" href="../../../static/css/login.css">
+</head>
+<body>
+    <div class="container">
+        <div class="logo-section">
+            <a href="{% url 'home' %}">
+                <img src="../../../static/img/logo.png" alt="Playlogg Logo" class="logo">
+            </a>
+        </div>
+        <div class="form-section">
+            <div class="login-form">
+                <h1 class="login-title">Resend Verification Email</h1>
+
+                {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                    <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="form-group">
+                        <input type="email" name="email" id="email"
+                               placeholder="Enter your email" class="form-control" required>
+                    </div>
+
+                    <button type="submit" class="btn">Resend Verification</button>
+
+                    <div class="links">
+                        <a href="{% url 'login' %}" class="signup-link">Return to Login</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
