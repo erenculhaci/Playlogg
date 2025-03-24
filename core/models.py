@@ -108,19 +108,19 @@ class Profile(models.Model):
         return self.verification_token
 
 
-# Signal to create profile when user is created
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        Profile.objects.create(
-            user=instance,
-            verification_token=get_random_string(64)
-        )
+    # Signal to create profile when user is created
+    @receiver(post_save, sender=User)
+    def create_user_profile(sender, instance, created, **kwargs):
+        if created:
+            Profile.objects.create(
+                user=instance,
+                verification_token=get_random_string(64)
+            )
 
 
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    instance.profile.save()
+    @receiver(post_save, sender=User)
+    def save_user_profile(sender, instance, **kwargs):
+        instance.profile.save()
 
 class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

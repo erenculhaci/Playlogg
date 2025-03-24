@@ -1,3 +1,5 @@
+from functools import wraps
+
 from django.db.models import Count, F, Q, Avg
 from django.contrib.auth.forms import AuthenticationForm
 from .models import Game, Comment, GameLog
@@ -189,19 +191,117 @@ def verify_email(request, uidb64, token):
         return redirect('login')
 
 
-# Login view with verification check
+def verification_required(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('login')
+
+        if not request.user.profile.is_verified:
+            messages.warning(request, 'Email verification is required to access this feature.')
+            return redirect('profile')
+
+        return view_func(request, *args, **kwargs)
+
+    return _wrapped_view
+
+
+@login_required
+def update_email(request):
+    if request.method == 'POST':
+        new_email = request.POST.get('new_email').strip()
+        current_email = request.user.email
+
+        # Check if new email is the same as current email
+        if new_email.lower() == current_email.lower():
+            messages.warning(request, 'The new email address is the same as your current email.')
+            return render(request, 'core/update_email.html')
+
+        # Check if email already exists
+        if User.objects.filter(email=new_email).exists():
+            messages.error(request, 'This email is already in use.')
+            return render(request, 'core/update_email.html')
+
+        # Generate a verification token
+        user = request.user
+        verification_token = user.profile.generate_verification_token()
+
+        # Send verification email
+        current_site = get_current_site(request)
+        mail_subject = 'Verify Your New Email on Playlogg'
+        message = render_to_string('core/email_update_verification.html', {
+            'user': user,
+            'domain': current_site.domain,
+            'new_email': new_email,
+            'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+            'token': verification_token,
+        })
+
+        email = EmailMessage(
+            mail_subject,
+            message,
+            to=[new_email]
+        )
+        email.content_subtype = "html"
+        email.send()
+
+        # Store new email and verification token in session for verification
+        request.session['new_email'] = new_email
+        request.session['email_verification_token'] = verification_token
+
+        messages.success(request, 'A verification email has been sent to your new email address.')
+        return redirect('update_email')
+
+    return render(request, 'core/update_email.html')
+
+
+def confirm_email_update(request, uidb64, token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    # Check if user exists and token matches
+    if user is not None and user.profile.verification_token == token:
+        # Get the new email from the session
+        new_email = request.session.get('new_email')
+
+        if new_email:
+            # Update user's email
+            user.email = new_email
+            user.save()
+
+            # Update profile verification status
+            user.profile.is_verified = False
+            user.profile.verification_token = ''  # Clear the token after use
+            user.profile.save()
+
+            # Clear session data
+            del request.session['new_email']
+            del request.session['email_verification_token']
+
+            messages.success(request, 'Your email has been successfully updated. Please verify your new email.')
+            return redirect('profile')
+        else:
+            messages.error(request, 'No new email found in the session.')
+            return redirect('update_email')
+    else:
+        messages.error(request, 'Invalid verification link.')
+        return redirect('update_email')
+
+
 def user_login(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
-
-            # Check if user is verified
-            if not user.profile.is_verified:
-                messages.error(request, 'Please verify your email before logging in.')
-                return render(request, 'core/login.html', {'form': form})
-
             login(request, user)
+
+            # Optional: Add a warning if not verified
+            if not user.profile.is_verified:
+                messages.warning(request, 'Your email is not verified. Some features may be limited.')
+
             return redirect('home')
         else:
             messages.error(request, 'Invalid login credentials. Please try again.')
@@ -450,7 +550,7 @@ def all_logs(request, user_id):
         'status_choices': status_choices
     })
 
-
+@verification_required
 @login_required
 def add_game(request):
     if request.method == 'POST':

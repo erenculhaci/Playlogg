@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md mx-auto">
+        <div class="bg-gray-900 bg-opacity-90 shadow-2xl rounded-lg overflow-hidden">
+            <div class="bg-purple-900 bg-opacity-80 px-6 py-4">
+                <h1 class="text-3xl font-bold text-white">Update Email</h1>
+            </div>
+
+            <form method="post" class="p-6 space-y-6" id="update-email-form">
+                {% csrf_token %}
+
+                <div>
+                    <label for="new_email" class="block text-sm font-medium text-gray-300 mb-1">
+                        New Email Address
+                    </label>
+                    <input type="email" name="new_email" id="new_email" required
+                           value="{{ request.POST.new_email|default:'' }}"
+                           class="mt-1 block w-full rounded-md bg-gray-800 border border-gray-700
+                                  shadow-sm py-2 px-3 text-white
+                                  focus:outline-none focus:ring-purple-500 focus:border-purple-500">
+                </div>
+
+                <div class="flex justify-between">
+                    <a href="{% url 'profile' %}" class="py-2 px-4 bg-gray-700 text-white rounded-md hover:bg-gray-600
+                                                 transition duration-200 focus:outline-none focus:ring-2
+                                                 focus:ring-offset-2 focus:ring-gray-500">
+                        Cancel
+                    </a>
+                    <button type="submit" class="py-2 px-6 bg-purple-600 text-white font-medium rounded-md
+                                            hover:bg-purple-700 transition duration-200 shadow-md
+                                            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                        Update Email
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    {% if messages %}
+        document.addEventListener('DOMContentLoaded', function() {
+            {% for message in messages %}
+                Swal.fire({
+                    title:
+                        {% if message.tags == 'error' %}'Error!'
+                        {% elif message.tags == 'warning' %}'Warning!'
+                        {% elif message.tags == 'success' %}'Success!'
+                        {% else %}'Notification'{% endif %},
+                    text: '{{ message }}',
+                    icon:
+                        {% if message.tags == 'error' %}'error'
+                        {% elif message.tags == 'warning' %}'warning'
+                        {% elif message.tags == 'success' %}'success'
+                        {% else %}'info'{% endif %},
+                    confirmButtonColor: '#8B5CF6'
+                });
+            {% endfor %}
+        });
+    {% endif %}
+</script>
+{% endblock %}

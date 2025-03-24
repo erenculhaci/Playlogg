@@ -119,17 +119,16 @@
 
                     <!-- Email -->
                     <div>
-                        <label for="{{ user_form.email.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-1">
+                        <label class="block text-sm font-medium text-gray-300 mb-1">
                             Email
                         </label>
-                        <input type="email" name="{{ user_form.email.name }}" id="{{ user_form.email.id_for_label }}"
-                               value="{{ user_form.email.value|default:'' }}"
-                               class="mt-1 block w-full rounded-md bg-gray-800 border border-gray-700
-                                      shadow-sm py-2 px-3 text-white
-                                      focus:outline-none focus:ring-purple-500 focus:border-purple-500">
-                        {% if user_form.email.errors %}
-                            <p class="mt-1 text-sm text-red-500">{{ user_form.email.errors.0 }}</p>
-                        {% endif %}
+                        <div class="mt-1 block w-full rounded-md bg-gray-800 border border-gray-700
+                                    shadow-sm py-2 px-3 text-white flex justify-between items-center">
+                            <span>{{ request.user.email }}</span>
+                            <a href="{% url 'update_email' %}" class="text-sm text-purple-400 hover:text-purple-300">
+                                Update Email
+                            </a>
+                        </div>
                     </div>
                 </div>
 
