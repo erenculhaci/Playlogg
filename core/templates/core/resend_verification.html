@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resend Verification - Playlogg</title>
     <link rel="stylesheet" href="../../../static/css/login.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -16,16 +18,6 @@
         <div class="form-section">
             <div class="login-form">
                 <h1 class="login-title">Resend Verification Email</h1>
-
-                {% if messages %}
-                <div class="messages">
-                    {% for message in messages %}
-                    <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
-                        {{ message }}
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
 
                 <form method="post">
                     {% csrf_token %}
@@ -45,4 +37,26 @@
         </div>
     </div>
 </body>
+<script>
+        {% if messages %}
+        document.addEventListener('DOMContentLoaded', function() {
+            {% for message in messages %}
+                Swal.fire({
+                    title:
+                        {% if message.tags == 'error' %}'Error!'
+                        {% elif message.tags == 'warning' %}'Warning!'
+                        {% elif message.tags == 'success' %}'Success!'
+                        {% else %}'Notification'{% endif %},
+                    text: '{{ message }}',
+                    icon:
+                        {% if message.tags == 'error' %}'error'
+                        {% elif message.tags == 'warning' %}'warning'
+                        {% elif message.tags == 'success' %}'success'
+                        {% else %}'info'{% endif %},
+                    confirmButtonColor: '#8B5CF6'
+                });
+            {% endfor %}
+        });
+    {% endif %}
+</script>
 </html>

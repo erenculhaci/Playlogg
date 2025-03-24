@@ -40,28 +40,3 @@
 </div>
 
 {% endblock %}
-
-{% block extra_js %}
-<script>
-    {% if messages %}
-        document.addEventListener('DOMContentLoaded', function() {
-            {% for message in messages %}
-                Swal.fire({
-                    title:
-                        {% if message.tags == 'error' %}'Error!'
-                        {% elif message.tags == 'warning' %}'Warning!'
-                        {% elif message.tags == 'success' %}'Success!'
-                        {% else %}'Notification'{% endif %},
-                    text: '{{ message }}',
-                    icon:
-                        {% if message.tags == 'error' %}'error'
-                        {% elif message.tags == 'warning' %}'warning'
-                        {% elif message.tags == 'success' %}'success'
-                        {% else %}'info'{% endif %},
-                    confirmButtonColor: '#8B5CF6'
-                });
-            {% endfor %}
-        });
-    {% endif %}
-</script>
-{% endblock %}
