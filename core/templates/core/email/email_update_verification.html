@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Activate Your Playlogg Account</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        .header {
+            background-color: #7b34dd;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .content {
+            padding: 20px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #7b34dd;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Verify Your New Email - Playlogg</h1>
+        </div>
+        <div class="content">
+            <p>Hi {{ user.username }},</p>
+            <p>You have requested to update your email address to {{ new_email }}.</p>
+            <p>Please click the link below to verify your new email address:</p>
+            <div style="text-align: center;">
+                <a href="http://{{ domain }}{% url 'confirm_email_update' uidb64=uid token=token %}" class="button">Verify Email Address</a>
+            </div>
+
+            <p>Or copy and paste the following link into your browser:</p>
+            <p>http://{{ domain }}{% url 'confirm_email_update' uidb64=uid token=token %}</p>
+
+            <p>If you did not request this change, please ignore this email.</p>
+
+            <p>Happy Gaming!</p>
+            <p>The Playlogg Team</p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2025 Playlogg. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

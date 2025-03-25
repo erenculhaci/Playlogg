@@ -1,5 +1,4 @@
 from functools import wraps
-
 from django.db.models import Count, F, Q, Avg
 from django.contrib.auth.forms import AuthenticationForm
 from .models import Game, Comment, GameLog
@@ -13,14 +12,10 @@ from django.core.paginator import Paginator
 import json
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import EmailMessage
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
-from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.auth.models import User
-from django.contrib import messages
 from .forms import UserRegistrationForm, UserEditForm, ProfileEditForm, CustomPasswordChangeForm, PasswordResetForm, SetPasswordForm
 from .models import Profile
 from django.contrib.auth import update_session_auth_hash
@@ -152,7 +147,7 @@ def register(request):
             # Send verification email
             current_site = get_current_site(request)
             mail_subject = 'Activate your Playlogg account'
-            message = render_to_string('core/verification_email.html', {
+            message = render_to_string('core/email/verification_email.html', {
                 'user': user,
                 'domain': current_site.domain,
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
@@ -169,7 +164,7 @@ def register(request):
             return redirect('login')
     else:
         form = UserRegistrationForm()
-    return render(request, 'core/register.html', {'form': form})
+    return render(request, 'core/user/register.html', {'form': form})
 
 
 def verify_email(request, uidb64, token):
@@ -215,21 +210,29 @@ def update_email(request):
         # Check if new email is the same as current email
         if new_email.lower() == current_email.lower():
             messages.warning(request, 'The new email address is the same as your current email.')
-            return render(request, 'core/update_email.html')
+            return render(request, 'core/user/update_email.html')
 
         # Check if email already exists
         if User.objects.filter(email=new_email).exists():
             messages.error(request, 'This email is already in use.')
-            return render(request, 'core/update_email.html')
+            return render(request, 'core/user/update_email.html')
 
         # Generate a verification token
         user = request.user
         verification_token = user.profile.generate_verification_token()
 
+        #update user's verification status to false when email is updated but not verified yet
+        user.profile.is_verified = False
+        user.profile.save()
+
+        # Update user's email
+        user.email = new_email
+        user.save()
+
         # Send verification email
         current_site = get_current_site(request)
         mail_subject = 'Verify Your New Email on Playlogg'
-        message = render_to_string('core/email_update_verification.html', {
+        message = render_to_string('core/email/email_update_verification.html', {
             'user': user,
             'domain': current_site.domain,
             'new_email': new_email,
@@ -250,9 +253,9 @@ def update_email(request):
         request.session['email_verification_token'] = verification_token
 
         messages.success(request, 'A verification email has been sent to your new email address.')
-        return redirect('update_email')
+        return redirect('edit_profile')
 
-    return render(request, 'core/update_email.html')
+    return render(request, 'core/user/update_email.html')
 
 
 def confirm_email_update(request, uidb64, token):
@@ -273,7 +276,7 @@ def confirm_email_update(request, uidb64, token):
             user.save()
 
             # Update profile verification status
-            user.profile.is_verified = False
+            user.profile.is_verified = True
             user.profile.verification_token = ''  # Clear the token after use
             user.profile.save()
 
@@ -281,7 +284,7 @@ def confirm_email_update(request, uidb64, token):
             del request.session['new_email']
             del request.session['email_verification_token']
 
-            messages.success(request, 'Your email has been successfully updated. Please verify your new email.')
+            messages.success(request, 'Your email has been successfully updated.')
             return redirect('profile')
         else:
             messages.error(request, 'No new email found in the session.')
@@ -308,7 +311,7 @@ def user_login(request):
     else:
         form = AuthenticationForm()
 
-    return render(request, 'core/login.html', {'form': form})
+    return render(request, 'core/user/login.html', {'form': form})
 
 # Password reset request view
 def password_reset_request(request):
@@ -326,7 +329,7 @@ def password_reset_request(request):
                 # Send reset email
                 current_site = get_current_site(request)
                 mail_subject = 'Reset your Playlogg password'
-                message = render_to_string('core/password_reset_email.html', {
+                message = render_to_string('core/email/password_reset_email.html', {
                     'user': user,
                     'domain': current_site.domain,
                     'uid': urlsafe_base64_encode(force_bytes(user.pk)),
@@ -348,7 +351,7 @@ def password_reset_request(request):
     else:
         form = PasswordResetForm()
 
-    return render(request, 'core/password_reset_form.html', {'form': form})
+    return render(request, 'core/password/password_reset_form.html', {'form': form})
 
 
 # Password reset confirm view
@@ -374,7 +377,7 @@ def password_reset_confirm(request, uidb64, token):
         else:
             form = SetPasswordForm(user)
 
-        return render(request, 'core/password_reset_confirm.html', {'form': form})
+        return render(request, 'core/password/password_reset_confirm.html', {'form': form})
     else:
         messages.error(request, 'The password reset link is invalid or has expired.')
         return redirect('password_reset_request')
@@ -394,7 +397,7 @@ def change_password(request):
     else:
         form = CustomPasswordChangeForm(request.user)
 
-    return render(request, 'core/change_password.html', {'form': form})
+    return render(request, 'core/password/change_password.html', {'form': form})
 
 # Resend verification email
 def resend_verification(request):
@@ -409,7 +412,7 @@ def resend_verification(request):
                 # Send verification email
                 current_site = get_current_site(request)
                 mail_subject = 'Activate your Playlogg account'
-                message = render_to_string('core/verification_email.html', {
+                message = render_to_string('core/email/verification_email.html', {
                     'user': user,
                     'domain': current_site.domain,
                     'uid': urlsafe_base64_encode(force_bytes(user.pk)),
@@ -428,7 +431,7 @@ def resend_verification(request):
         except User.DoesNotExist:
             messages.error(request, 'No account found with this email address.')
 
-    return render(request, 'core/resend_verification.html')
+    return render(request, 'core/user/resend_verification.html')
 
 
 @login_required
@@ -460,7 +463,7 @@ def edit_profile(request):
         user_form = UserEditForm(instance=request.user)
         profile_form = ProfileEditForm(instance=profile)
 
-    return render(request, 'core/edit_profile.html', {
+    return render(request, 'core/user/edit_profile.html', {
         'user_form': user_form,
         'profile_form': profile_form
     })
@@ -479,7 +482,7 @@ def delete_profile(request):
         else:
             messages.error(request, 'Incorrect password. Please try again.')
 
-    return render(request, 'core/delete_profile.html')
+    return render(request, 'core/user/delete_profile.html')
 
 # Search view
 def search(request):
@@ -509,7 +512,7 @@ def user_profile(request):
     # Tüm logları görmek için link
     all_logs_url = reverse('all_logs', kwargs={'user_id': request.user.id})
 
-    return render(request, 'core/profile.html', {
+    return render(request, 'core/user/profile.html', {
         'profile': user_profile,
         'liked_games': liked_games,
         'logs': logs,
@@ -524,7 +527,7 @@ def view_profile(request, user_id):
     logs = GameLog.objects.filter(user=user).order_by('-created_at')[:4]
     all_logs_url = reverse('all_logs', kwargs={'user_id': user.id})
 
-    return render(request, 'core/profile.html', {
+    return render(request, 'core/user/profile.html', {
         'profile': user_profile,
         'liked_games': liked_games,
         'logs': logs,
@@ -544,7 +547,7 @@ def all_logs(request, user_id):
     # Get status choices from model
     status_choices = GameLog.STATUS_CHOICES
 
-    return render(request, 'core/all_logs.html', {
+    return render(request, 'core/game/all_logs.html', {
         'logs': logs,
         'user': user,
         'status_choices': status_choices
@@ -580,7 +583,7 @@ def add_game(request):
             game.save()
 
         return redirect('home')
-    return render(request, 'core/add_game.html')
+    return render(request, 'core/game/add_game.html')
 
 
 @login_required
@@ -629,7 +632,7 @@ def edit_game(request, game_id):
         messages.success(request, 'Game details updated successfully!')
         return redirect('game_detail', game_id=game.id)
 
-    return render(request, 'core/edit_game.html', {'game': game})
+    return render(request, 'core/game/edit_game.html', {'game': game})
 
 @login_required
 def delete_game(request, game_id):
@@ -695,7 +698,7 @@ def add_log(request, game_id):
 
     status_choices = GameLog.STATUS_CHOICES
 
-    return render(request, 'core/log_form.html', {'form': form, 'game': game, 'status_choices': status_choices})
+    return render(request, 'core/game/log_form.html', {'form': form, 'game': game, 'status_choices': status_choices})
 
 
 @login_required
@@ -713,7 +716,7 @@ def edit_log(request, log_id):
 
     status_choices = GameLog.STATUS_CHOICES
 
-    return render(request, 'core/log_form.html', {'form': form, 'game': log.game, 'status_choices': status_choices})
+    return render(request, 'core/game/log_form.html', {'form': form, 'game': log.game, 'status_choices': status_choices})
 
 
 @login_required
@@ -777,7 +780,7 @@ def edit_comment(request, comment_id):
         # Changed redirect to include fragment
         return HttpResponseRedirect(reverse('game_detail', kwargs={'game_id': comment.game.id}) + '#comments')
 
-    return render(request, 'core/edit_comment.html', {'comment': comment})
+    return render(request, 'core/game/edit_comment.html', {'comment': comment})
 
 
 # Delete comment view
@@ -817,7 +820,7 @@ def game_detail(request, game_id):
     # Get total number of ratings
     total_ratings = game.logs.filter(rating__isnull=False).count()
 
-    return render(request, 'core/game_detail.html', {
+    return render(request, 'core/game/game_detail.html', {
         'game': game,
         'comments': comments,
         'logs_with_notes': logs_with_notes,
