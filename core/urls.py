@@ -30,6 +30,7 @@ urlpatterns = [
     # Email verification URLs
     path('verify/<uidb64>/<token>/', views.verify_email, name='verify_email'),
     path('resend-verification/', views.resend_verification, name='resend_verification'),
+    path('resend-verification-profile/', views.resend_verification_from_profile, name='resend_verification_profile'),
     # Password reset URLs
     path('password-reset/', views.password_reset_request, name='password_reset_request'),
     path('password-reset-confirm/<uidb64>/<token>/', views.password_reset_confirm, name='password_reset_confirm'),

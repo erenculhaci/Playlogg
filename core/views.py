@@ -433,6 +433,39 @@ def resend_verification(request):
 
     return render(request, 'core/user/resend_verification.html')
 
+@login_required()
+def resend_verification_from_profile(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        try:
+            user = User.objects.get(email=email)
+            if not user.profile.is_verified:
+                # Regenerate token
+                token = user.profile.generate_verification_token()
+
+                # Send verification email
+                current_site = get_current_site(request)
+                mail_subject = 'Activate your Playlogg account'
+                message = render_to_string('core/email/verification_email.html', {
+                    'user': user,
+                    'domain': current_site.domain,
+                    'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                    'token': token,
+                })
+                to_email = user.email
+                email = EmailMessage(
+                    mail_subject, message, to=[to_email]
+                )
+                email.content_subtype = "html"
+                email.send()
+
+                messages.success(request, 'Verification email has been resent. Please check your inbox.')
+            else:
+                messages.info(request, 'This account is already verified. You can log in.')
+        except User.DoesNotExist:
+            messages.error(request, 'No account found with this email address.')
+
+    return redirect('profile')
 
 @login_required
 def edit_profile(request):
