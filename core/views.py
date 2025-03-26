@@ -162,6 +162,11 @@ def register(request):
 
             messages.success(request, 'Registration successful! Please check your email to verify your account.')
             return redirect('login')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field.capitalize()}: {error}")
+
     else:
         form = UserRegistrationForm()
     return render(request, 'core/user/register.html', {'form': form})
