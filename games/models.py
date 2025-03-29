@@ -5,10 +5,10 @@ from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 class Game(models.Model):
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=300)
     description = models.TextField()
     release_date = models.DateField()
-    studio = models.CharField(max_length=100) # Developer or studio
+    studio = models.CharField(max_length=300) # Developer or studio
     genres = JSONField(default=list, blank=True) # List of genres
     platforms = JSONField(default=list, blank=True) # List of platforms
     likes = models.IntegerField(default=0)
