@@ -1,4 +1,4 @@
-from django.db.models import Count, F, Q, Avg
+from django.db.models import Count, F, Q, Avg, Case, When, Value, FloatField
 from games.models import Game
 from django.http import JsonResponse
 from django.core.paginator import Paginator
@@ -47,7 +47,15 @@ def home(request):
 
     # Optimize rating filter with a single annotation
     if rating_from or rating_to:
-        games_queryset = games_queryset.annotate(avg_rating=Avg('logs__rating'))
+        # Use COALESCE to convert NULL to 0 for games with no ratings
+        games_queryset = games_queryset.annotate(
+            avg_rating=Case(
+                When(logs__rating__isnull=False, then=Avg('logs__rating')),
+                default=Value(0.0),
+                output_field=FloatField()
+            )
+        )
+
         if rating_from:
             games_queryset = games_queryset.filter(avg_rating__gte=float(rating_from))
         if rating_to:
