@@ -6,8 +6,8 @@ from .models import Game
 from django.contrib.auth import get_user_model
 
 # IGDB API Credentials
-TWITCH_CLIENT_ID = "69dpy73ft41u9y3mxgmj18ax77jtnh"
-TWITCH_CLIENT_SECRET = "21rwqykrpdi4g5amb8osxswye4ut4p"
+TWITCH_CLIENT_ID = settings.TWITCH_CLIENT_ID
+TWITCH_CLIENT_SECRET = settings.TWITCH_CLIENT_SECRET
 
 
 # Get OAuth Token

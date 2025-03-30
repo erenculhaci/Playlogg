@@ -163,3 +163,6 @@ MESSAGE_TAGS = {
     messages.WARNING: 'warning',
     messages.ERROR: 'error',
 }
+
+TWITCH_CLIENT_ID = env('TWITCH_CLIENT_ID')
+TWITCH_CLIENT_SECRET = env('TWITCH_CLIENT_SECRET')
