@@ -161,12 +161,17 @@
                                         <!-- Studio -->
                                         <div>
                                             <label class="block text-white text-lg mb-2">Studio</label>
-                                            <select name="studio" class="w-full bg-gray-800 border border-gray-700 text-white py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
-                                                <option value="">Any Studio</option>
-                                                {% for studio in studios %}
-                                                <option value="{{ studio }}" {% if studio == current_filters.studio %}selected{% endif %}>{{ studio }}</option>
-                                                {% endfor %}
-                                            </select>
+                                            <div class="relative">
+                                                <input type="text" name="studio" id="studioSearch"
+                                                       class="w-full bg-gray-800 border border-gray-700 text-white py-2 px-3 pl-10 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                                       placeholder="Search for a studio..."
+                                                       value="{{ current_filters.studio }}"
+                                                       autocomplete="off">
+                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <i class="fas fa-search text-gray-500"></i>
+                                                </div>
+                                                <div id="studioResults" class="absolute z-10 mt-1 w-full bg-gray-800 border border-gray-700 rounded-md shadow-lg hidden max-h-60 overflow-y-auto filter-scrollbar"></div>
+                                            </div>
                                         </div>
 
                                         <!-- Release Year Range -->
@@ -335,6 +340,76 @@
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const studioSearch = document.getElementById('studioSearch');
+    const studioResults = document.getElementById('studioResults');
+
+    // Debounce function to limit how often the API is called
+    function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+
+    // Function to fetch studios matching the search term
+    const searchStudios = debounce(function(term) {
+        if (term.length < 2) {
+            studioResults.innerHTML = '';
+            studioResults.classList.add('hidden');
+            return;
+        }
+
+        fetch(`/search-studios/?term=${encodeURIComponent(term)}`)
+            .then(response => response.json())
+            .then(data => {
+                studioResults.innerHTML = '';
+
+                if (data.studios.length === 0) {
+                    const noResults = document.createElement('div');
+                    noResults.className = 'p-2 text-gray-400 text-center';
+                    noResults.textContent = 'No studios found';
+                    studioResults.appendChild(noResults);
+                } else {
+                    data.studios.forEach(studio => {
+                        const item = document.createElement('div');
+                        item.className = 'p-2 hover:bg-gray-700 cursor-pointer text-white';
+                        item.textContent = studio;
+                        item.addEventListener('click', () => {
+                            studioSearch.value = studio;
+                            studioResults.classList.add('hidden');
+                        });
+                        studioResults.appendChild(item);
+                    });
+                }
+
+                studioResults.classList.remove('hidden');
+            })
+            .catch(error => {
+                console.error('Error fetching studios:', error);
+            });
+    }, 300);
+
+    // Event listener for input changes
+    studioSearch.addEventListener('input', function() {
+        searchStudios(this.value);
+    });
+
+    // Hide results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!studioSearch.contains(e.target)) {
+            studioResults.classList.add('hidden');
+        }
+    });
+
+    // Show results when focusing on the input
+    studioSearch.addEventListener('focus', function() {
+        if (this.value.length >= 2) {
+            searchStudios(this.value);
+        }
+    });
+});
 document.addEventListener('DOMContentLoaded', function() {
     const filterButton = document.getElementById('filterButton');
     const filterPanel = document.getElementById('filterPanel');

@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.db.models import JSONField
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
+from django.db import migrations
 
 class Game(models.Model):
     name = models.CharField(max_length=300)
@@ -22,6 +23,28 @@ class Game(models.Model):
         blank=True,
         default='game_images/default_game.jpg'  # Path to your default image in MEDIA_ROOT
     )
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['name']),
+            models.Index(fields=['release_date']),
+            models.Index(fields=['studio']),
+            models.Index(fields=['-id']),
+        ]
+
+    class Migration(migrations.Migration):
+            dependencies = [
+                     ('games', 'previous_migration'),
+                 ]
+
+            operations = [
+                 migrations.RunSQL(
+                     'CREATE INDEX games_game_genres_gin ON games_game USING GIN (genres);'
+                 ),
+                 migrations.RunSQL(
+                     'CREATE INDEX games_game_platforms_gin ON games_game USING GIN (platforms);'
+                 ),
+             ]
 
     def __str__(self):
         return self.name
