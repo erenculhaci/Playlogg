@@ -109,12 +109,17 @@ def home(request):
         'active_count': active_count,
     }
 
+    query_params = request.GET.copy()
+    if 'page' in query_params:
+        query_params.pop('page')
+
     context = {
         'games': games,
         'genres': unique_genres,
         'platforms': unique_platforms,
         'current_filters': current_filters,
-        'sort': sort
+        'sort': sort,
+        'query_params': query_params.urlencode()
     }
 
     return render(request, 'core/home.html', context)
