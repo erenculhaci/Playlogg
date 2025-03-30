@@ -196,18 +196,37 @@
                                         <!-- Rating Range -->
                                         <div>
                                             <label class="block text-white text-lg mb-2">Average Rating</label>
-                                            <div class="flex flex-col sm:flex-row gap-4">
+                                            <div class="flex flex-col sm:flex-row gap-6">
+                                                <!-- FROM Rating -->
                                                 <div class="w-full sm:w-1/2">
-                                                    <label class="block text-gray-400 text-sm">From</label>
-                                                    <input type="number" name="rating_from" min="0" max="10" step="0.1"
-                                                        class="w-full bg-gray-800 border border-gray-700 text-white py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                                        value="{{ current_filters.rating_from }}">
+                                                    <label class="block text-gray-400 text-sm mb-2">From</label>
+                                                    <div class="flex items-center space-x-2">
+                                                        <div class="star-rating-from flex items-center space-x-1">
+                                                            {% for i in "12345" %}
+                                                                <button type="button" class="star-btn-from p-1 focus:outline-none transition-all" data-value="{{ forloop.counter }}">
+                                                                    <!-- Stars will be inserted by JavaScript -->
+                                                                </button>
+                                                            {% endfor %}
+                                                        </div>
+                                                        <span class="text-lg text-white ml-2" id="rating-from-display">{{ current_filters.rating_from|default:'0' }}/5</span>
+                                                        <input type="hidden" name="rating_from" id="id_rating_from" value="{{ current_filters.rating_from|default:'0' }}" min="0" max="5" step="0.5">
+                                                    </div>
                                                 </div>
+
+                                                <!-- TO Rating -->
                                                 <div class="w-full sm:w-1/2">
-                                                    <label class="block text-gray-400 text-sm">To</label>
-                                                    <input type="number" name="rating_to" min="0" max="10" step="0.1"
-                                                        class="w-full bg-gray-800 border border-gray-700 text-white py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                                        value="{{ current_filters.rating_to }}">
+                                                    <label class="block text-gray-400 text-sm mb-2">To</label>
+                                                    <div class="flex items-center space-x-2">
+                                                        <div class="star-rating-to flex items-center space-x-1">
+                                                            {% for i in "12345" %}
+                                                                <button type="button" class="star-btn-to p-1 focus:outline-none transition-all" data-value="{{ forloop.counter }}">
+                                                                    <!-- Stars will be inserted by JavaScript -->
+                                                                </button>
+                                                            {% endfor %}
+                                                        </div>
+                                                        <span class="text-lg text-white ml-2" id="rating-to-display">{{ current_filters.rating_to|default:'5' }}/5</span>
+                                                        <input type="hidden" name="rating_to" id="id_rating_to" value="{{ current_filters.rating_to|default:'5' }}" min="0" max="5" step="0.5">
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -469,6 +488,198 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+    document.addEventListener("DOMContentLoaded", function() {
+        // Star Rating "From" functionality
+        setupStarRating('from');
+
+        // Star Rating "To" functionality
+        setupStarRating('to');
+
+        function setupStarRating(type) {
+            const starBtns = document.querySelectorAll(`.star-btn-${type}`);
+            const ratingInput = document.getElementById(`id_rating_${type}`);
+            const ratingDisplay = document.getElementById(`rating-${type}-display`);
+            const starContainer = document.querySelector(`.star-rating-${type}`);
+
+            // Create star elements
+            starBtns.forEach((btn, index) => {
+                btn.innerHTML = `
+                    <div class="relative">
+                        <!-- Empty star (background) -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-600 transition-all duration-300" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                        </svg>
+                        <!-- Full star (overlay) -->
+                        <div class="absolute inset-0 overflow-hidden star-fill transition-all duration-300 ease-out transform origin-left" style="width: ${getRatingWidth(index + 1, type)}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                            </svg>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Function to get width for star fills
+            function getRatingWidth(position, type) {
+                const currentRating = parseFloat(document.getElementById(`id_rating_${type}`).value) || (type === 'to' ? 5 : 0);
+                if (position <= currentRating) {
+                    return "100%";
+                } else if (position > currentRating && position - 1 < currentRating) {
+                    // For half stars
+                    return ((currentRating % 1) * 100) + "%";
+                }
+                return "0%";
+            }
+
+            // Update stars when rating changes
+            function updateStars(rating, type) {
+                ratingInput.value = rating;
+                ratingDisplay.textContent = rating + "/5";
+
+                // Update each star's fill width
+                starBtns.forEach((btn, index) => {
+                    const fillElement = btn.querySelector(".star-fill");
+                    fillElement.style.width = getRatingWidth(index + 1, type);
+                });
+
+                // Ensure "from" value is not greater than "to" value and vice versa
+                if (type === 'from') {
+                    const toValue = parseFloat(document.getElementById('id_rating_to').value) || 5;
+                    if (rating > toValue) {
+                        updateStars(toValue, 'from');
+                    }
+                } else if (type === 'to') {
+                    const fromValue = parseFloat(document.getElementById('id_rating_from').value) || 0;
+                    if (rating < fromValue) {
+                        updateStars(fromValue, 'to');
+                    }
+                }
+            }
+
+            // Initial setup
+            updateStars(parseFloat(ratingInput.value) || (type === 'to' ? 5 : 0), type);
+
+            // Add hover effects to stars
+            starBtns.forEach((btn, index) => {
+                // Preview stars on hover
+                btn.addEventListener("mouseenter", function(e) {
+                    const rect = btn.getBoundingClientRect();
+                    const hoverX = e.clientX - rect.left;
+                    const halfPoint = rect.width / 2;
+
+                    let hoverValue;
+                    if (hoverX < halfPoint) {
+                        hoverValue = index + 0.5; // Half star
+                    } else {
+                        hoverValue = index + 1; // Full star
+                    }
+
+                    // Preview the hover state
+                    starBtns.forEach((starBtn, i) => {
+                        const fillElement = starBtn.querySelector(".star-fill");
+                        if (i < index) {
+                            fillElement.style.width = "100%";
+                            fillElement.classList.add("scale-110");
+                        } else if (i === index) {
+                            fillElement.style.width = hoverX < halfPoint ? "50%" : "100%";
+                            fillElement.classList.add("scale-110");
+                        } else {
+                            fillElement.style.width = "0%";
+                        }
+
+                        // Add pulse animation to the hovered star
+                        if (i === index) {
+                            fillElement.classList.add("pulse-animation");
+                        }
+                    });
+
+                    // Update display preview
+                    ratingDisplay.textContent = hoverValue + "/5";
+                    ratingDisplay.classList.add("text-yellow-300");
+                });
+
+                // Handle mousemove for dynamic half-star effects
+                btn.addEventListener("mousemove", function(e) {
+                    const rect = btn.getBoundingClientRect();
+                    const hoverX = e.clientX - rect.left;
+                    const halfPoint = rect.width / 2;
+
+                    const fillElement = btn.querySelector(".star-fill");
+                    if (hoverX < halfPoint) {
+                        fillElement.style.width = "50%";
+                        ratingDisplay.textContent = (index + 0.5) + "/5";
+                    } else {
+                        fillElement.style.width = "100%";
+                        ratingDisplay.textContent = (index + 1) + "/5";
+                    }
+                });
+
+                // Reset stars when not hovering anymore
+                btn.addEventListener("mouseleave", function() {
+                    const fillElement = btn.querySelector(".star-fill");
+                    fillElement.classList.remove("scale-110", "pulse-animation");
+                });
+
+                // Update rating on click
+                btn.addEventListener("click", function(e) {
+                    const rect = btn.getBoundingClientRect();
+                    const clickX = e.clientX - rect.left;
+                    const halfPoint = rect.width / 2;
+
+                    let value;
+                    if (clickX < halfPoint) {
+                        value = index + 0.5; // Half star
+                    } else {
+                        value = index + 1; // Full star
+                    }
+
+                    updateStars(value, type);
+
+                    // Add click animation
+                    const fillElement = btn.querySelector(".star-fill");
+                    fillElement.classList.add("scale-125");
+                    setTimeout(() => {
+                        fillElement.classList.remove("scale-125");
+                    }, 300);
+                });
+            });
+
+            // Reset to actual rating when mouse leaves the star container
+            starContainer.addEventListener("mouseleave", function() {
+                updateStars(parseFloat(ratingInput.value) || (type === 'to' ? 5 : 0), type);
+                ratingDisplay.classList.remove("text-yellow-300");
+
+                // Remove all animations
+                starBtns.forEach(btn => {
+                    const fillElement = btn.querySelector(".star-fill");
+                    fillElement.classList.remove("scale-110", "pulse-animation", "scale-125");
+                });
+            });
+        }
+
+        // Add CSS for star animations
+        if (!document.getElementById('star-rating-styles')) {
+            const style = document.createElement('style');
+            style.id = 'star-rating-styles';
+            style.textContent = `
+                @keyframes pulse {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(1.1); }
+                    100% { transform: scale(1); }
+                }
+                .pulse-animation {
+                    animation: pulse 0.5s infinite;
+                }
+                .star-btn-from:hover .star-fill, .star-btn-to:hover .star-fill {
+                    filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.8));
+                }
+                .star-rating-from, .star-rating-to {
+                    transition: all 0.3s ease;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    });
 </script>
     <style>
 /* Filter panel animations and styling */
