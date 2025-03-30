@@ -41,10 +41,10 @@
                 <div class="flex flex-wrap gap-2">
                     <!-- Sort Dropdown -->
                     <div class="relative">
-                        <select onchange="window.location=this.value" class="appearance-none bg-gray-800 border border-gray-700 text-white px-4 py-2 pr-8 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                            <option value="?sort=recent" {% if request.GET.sort == 'recent' %}selected{% endif %}>Recently Added</option>
-                            <option value="?sort=popular" {% if request.GET.sort == 'popular' %}selected{% endif %}>Most Popular</option>
-                            <option value="?sort=name" {% if request.GET.sort == 'name' %}selected{% endif %}>A-Z</option>
+                        <select onchange="updateSortParameter(this.value)" class="appearance-none bg-gray-800 border border-gray-700 text-white px-4 py-2 pr-8 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <option value="recent" {% if request.GET.sort == 'recent' or not request.GET.sort %}selected{% endif %}>Recently Added</option>
+                            <option value="popular" {% if request.GET.sort == 'popular' %}selected{% endif %}>Most Popular</option>
+                            <option value="name" {% if request.GET.sort == 'name' %}selected{% endif %}>A-Z</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-white">
                             <i class="fas fa-chevron-down text-xs"></i>
@@ -680,6 +680,16 @@ document.addEventListener('DOMContentLoaded', function() {
             document.head.appendChild(style);
         }
     });
+function updateSortParameter(sortValue) {
+    // Get current URL
+    const url = new URL(window.location.href);
+
+    // Update only the sort parameter
+    url.searchParams.set('sort', sortValue);
+
+    // Navigate to the new URL
+    window.location = url.toString();
+}
 </script>
     <style>
 /* Filter panel animations and styling */
