@@ -1,12 +1,13 @@
 from .models import Game
-from logs.models import GameLog
-import os
 import json
+import boto3
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from accounts.views import verification_required
 from django.contrib import messages
 from django.db.models import Avg
+
 
 @verification_required
 @login_required
@@ -50,6 +51,11 @@ def edit_game(request, game_id):
         messages.error(request, "You do not have permission to edit this game.")
         return redirect('game_detail', game_id=game.id)
 
+    # Store the original image path for possible deletion
+    old_image = None
+    if game.image and game.image.name != 'game_images/default_game.jpg':
+        old_image = game.image.name
+
     if request.method == 'POST':
         # Get the updated game details from the form
         game.name = request.POST.get('name')
@@ -68,26 +74,42 @@ def edit_game(request, game_id):
 
         # Handle image updates
         if 'image' in request.FILES:
-            # If there's an existing image, delete it
-            if game.image and game.image.name != 'game_images/default_game.jpg':
-                if os.path.isfile(game.image.path):
-                    os.remove(game.image.path)
-
-            # Save the new image
+            # If there's a new image, we'll delete the old one after saving the new one
             game.image = request.FILES['image']
 
         # Handle image removal if requested
-        if request.POST.get(
-                'remove_image') == 'on' and game.image and game.image.name != 'game_images/default_game.jpg':
-            if os.path.isfile(game.image.path):
-                os.remove(game.image.path)
+        if request.POST.get('remove_image') == 'on':
             game.image = None
 
+        # Save the game with potentially new image
         game.save()
+
+        # Now handle the deletion of the old image if needed
+        if (('image' in request.FILES or request.POST.get('remove_image') == 'on') and
+                old_image and old_image != 'game_images/default_game.jpg'):
+            # Initialize S3 client
+            s3 = boto3.client(
+                's3',
+                aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                region_name=settings.AWS_S3_REGION_NAME
+            )
+
+            try:
+                # Delete the old file from S3
+                s3.delete_object(
+                    Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+                    Key=f"{settings.MEDIA_ROOT}{old_image}"
+                )
+            except Exception as e:
+                # Log the error but don't raise it
+                print(f"Error deleting old image from S3: {e}")
+
         messages.success(request, 'Game details updated successfully!')
         return redirect('game_detail', game_id=game.id)
 
     return render(request, 'core/game/edit_game.html', {'game': game})
+
 
 @login_required
 def delete_game(request, game_id):
@@ -95,12 +117,13 @@ def delete_game(request, game_id):
 
     # Ensure that the logged-in user added the game
     if game.added_by == request.user:
-        game.delete()
+        game.delete()  # This will trigger the post_delete signal
         messages.success(request, 'Game deleted successfully.')
     else:
         messages.error(request, 'You do not have permission to delete this game.')
 
     return redirect('home')
+
 
 @login_required
 def like_game(request, game_id):
@@ -132,6 +155,7 @@ def unfavorite_game(request, game_id):
 
     # Redirect back to the profile page
     return redirect('profile')
+
 
 # Game detail view
 def game_detail(request, game_id):
