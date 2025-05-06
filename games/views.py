@@ -1,7 +1,5 @@
 from .models import Game
 import json
-import boto3
-from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from accounts.views import verification_required
@@ -87,23 +85,8 @@ def edit_game(request, game_id):
         # Now handle the deletion of the old image if needed
         if (('image' in request.FILES or request.POST.get('remove_image') == 'on') and
                 old_image and old_image != 'game_images/default_game.jpg'):
-            # Initialize S3 client
-            s3 = boto3.client(
-                's3',
-                aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                region_name=settings.AWS_S3_REGION_NAME
-            )
-
-            try:
-                # Delete the old file from S3
-                s3.delete_object(
-                    Bucket=settings.AWS_STORAGE_BUCKET_NAME,
-                    Key=f"{settings.MEDIA_ROOT}{old_image}"
-                )
-            except Exception as e:
-                # Log the error but don't raise it
-                print(f"Error deleting old image from S3: {e}")
+            from common.s3_utils import delete_s3_image
+            delete_s3_image(old_image)
 
         messages.success(request, 'Game details updated successfully!')
         return redirect('game_detail', game_id=game.id)

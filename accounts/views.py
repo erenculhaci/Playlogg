@@ -359,10 +359,16 @@ def resend_verification_from_profile(request):
 
     return redirect('profile')
 
+
 @login_required
 def edit_profile(request):
     # Make sure the profile exists
     profile, created = Profile.objects.get_or_create(user=request.user)
+
+    # Store the original image path for possible deletion
+    old_image = None
+    if profile.profile_picture and profile.profile_picture.name != 'profile_pictures/default_profile.jpg':
+        old_image = profile.profile_picture.name
 
     if request.method == 'POST':
         user_form = UserEditForm(request.POST, instance=request.user)
@@ -376,10 +382,17 @@ def edit_profile(request):
             if 'profile_picture' in request.FILES:
                 profile_obj.profile_picture = request.FILES['profile_picture']
             elif 'profile_picture-clear' in request.POST:
-                # This handles the case when user clears the image
-                profile_obj.profile_picture = 'profile_pictures/default_profile.jpg'
+                profile_obj.profile_picture = None  # Will be set to default in save() method
 
+            # Save the profile with potentially new image
             profile_obj.save()
+
+            # Now handle the deletion of the old image if needed
+            if (('profile_picture' in request.FILES or 'profile_picture-clear' in request.POST) and
+                    old_image and old_image != 'profile_pictures/default_profile.jpg'):
+                from common.s3_utils import delete_s3_image
+                delete_s3_image(old_image)
+
             messages.success(request, 'Your profile was successfully updated!')
             return redirect('profile')
         else:
@@ -393,6 +406,7 @@ def edit_profile(request):
         'profile_form': profile_form
     })
 
+
 @login_required
 def delete_profile(request):
     if request.method == 'POST':
@@ -400,7 +414,13 @@ def delete_profile(request):
 
         # Verify the password
         if check_password(password, request.user.password):
-            # Delete the user account
+            # Delete the profile picture from S3 if it exists and is not default
+            profile = request.user.profile
+            if profile.profile_picture and profile.profile_picture.name != 'profile_pictures/default_profile.jpg':
+                from common.s3_utils import delete_s3_image
+                delete_s3_image(profile.profile_picture.name)
+
+            # Delete the user account (this will trigger the post_delete signal)
             request.user.delete()
             messages.success(request, 'Your account has been deleted.')
             return redirect('register')

@@ -5,7 +5,6 @@ from django.db.models.signals import post_delete, pre_save
 from django.dispatch import receiver
 from django.db import migrations
 from django.conf import settings
-import boto3
 from common.storage import MediaStorage
 
 
@@ -110,20 +109,5 @@ def delete_game_image(sender, instance, **kwargs):
     unless it's the default image.
     """
     if instance.image and instance.image.name != 'game_images/default_game.jpg':
-        try:
-            # Initialize S3 client
-            s3 = boto3.client(
-                's3',
-                aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                region_name=settings.AWS_S3_REGION_NAME
-            )
-
-            # The key doesn't need the media prefix since it's already in the name
-            s3.delete_object(
-                Bucket=settings.AWS_STORAGE_BUCKET_NAME,
-                Key=f"media/{instance.image.name}"
-            )
-            print(f"Deleted S3 image: media/{instance.image.name}")
-        except Exception as e:
-            print(f"Error deleting image from S3: {e}")
+        from common.s3_utils import delete_s3_image
+        delete_s3_image(instance.image.name)
