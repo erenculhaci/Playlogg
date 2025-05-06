@@ -291,5 +291,131 @@
     platforms = platforms.filter(p => p !== platform);
     updatePlatformTags();
   }
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Get the form element
+  const gameForm = document.querySelector('form[method="post"]');
+
+  if (gameForm) {
+    // Add event listener for form submission
+    gameForm.addEventListener('submit', function(event) {
+      // Prevent form submission initially
+      event.preventDefault();
+
+      // Get form fields to validate
+      const gameName = document.getElementById('name');
+      const releaseDate = document.getElementById('release_date');
+      const studio = document.getElementById('studio');
+      const genresHidden = document.getElementById('genres-hidden');
+      const platformsHidden = document.getElementById('platforms-hidden');
+
+      // Validation flags
+      let isValid = true;
+      let errorMessage = '';
+
+      // Validate game name (required)
+      if (!gameName.value.trim()) {
+        isValid = false;
+        errorMessage = 'Game name is required';
+        highlightField(gameName);
+      }
+
+      // Validate release date (required)
+      else if (!releaseDate.value) {
+        isValid = false;
+        errorMessage = 'Release date is required';
+        highlightField(releaseDate);
+      }
+
+      // Validate studio (required)
+      else if (!studio.value.trim()) {
+        isValid = false;
+        errorMessage = 'Studio/Developer is required';
+        highlightField(studio);
+      }
+
+      // Validate genres (at least one required)
+      else if (!genresHidden.value || genresHidden.value === '[]') {
+        isValid = false;
+        errorMessage = 'At least one genre is required';
+        highlightField(document.getElementById('genre-input'));
+      }
+
+      // Validate platforms (at least one required)
+      else if (!platformsHidden.value || platformsHidden.value === '[]') {
+        isValid = false;
+        errorMessage = 'At least one platform is required';
+        highlightField(document.getElementById('platform-input'));
+      }
+
+      // If the form is valid, submit it
+      if (isValid) {
+        gameForm.submit();
+      } else {
+        // Show SweetAlert error
+        Swal.fire({
+          title: 'Validation Error',
+          text: errorMessage,
+          icon: 'error',
+          confirmButtonColor: '#8B5CF6'
+        });
+      }
+    });
+  }
+
+  // Function to highlight invalid field
+  function highlightField(field) {
+    field.classList.add('border-red-500', 'focus:ring-red-500');
+    field.classList.remove('border-gray-600', 'focus:ring-purple-500');
+
+    // Reset highlight after focus
+    field.addEventListener('focus', function() {
+      field.classList.remove('border-red-500', 'focus:ring-red-500');
+      field.classList.add('border-gray-600', 'focus:ring-purple-500');
+    }, { once: true });
+  }
+
+  // Add real-time validation for form fields
+  const formInputs = document.querySelectorAll('input[type="text"], textarea');
+  formInputs.forEach(input => {
+    input.addEventListener('blur', function() {
+      if (input.id === 'name' || input.id === 'studio') {
+        if (!input.value.trim()) {
+          highlightField(input);
+
+          // Show tooltip or mini notification
+          const inputLabel = document.querySelector(`label[for="${input.id}"]`).textContent;
+          Swal.fire({
+            title: 'Required Field',
+            text: `${inputLabel} cannot be empty`,
+            icon: 'warning',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+          });
+        }
+      }
+    });
+  });
+
+  // Special handling for tag inputs (genres and platforms)
+  const tagInputs = [
+    { input: document.getElementById('genre-input'), container: document.getElementById('genres-container') },
+    { input: document.getElementById('platform-input'), container: document.getElementById('platforms-container') }
+  ];
+
+  tagInputs.forEach(({input, container}) => {
+    if (input && container) {
+      // Show validation when leaving the input field
+      input.addEventListener('blur', function() {
+        if (!container.children.length) {
+          highlightField(input);
+        }
+      });
+    }
+  });
+});
 </script>
 {% endblock %}
