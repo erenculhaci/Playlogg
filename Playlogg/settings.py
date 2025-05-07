@@ -4,6 +4,7 @@ Django settings for Playlogg project with S3 configuration.
 import os
 from pathlib import Path
 import environ
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,9 +20,9 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -75,7 +76,7 @@ WSGI_APPLICATION = 'Playlogg.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
+'''
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -86,6 +87,13 @@ DATABASES = {
         'PORT': env('DB_PORT'),
     }
 }
+'''
+
+#Render Live Database
+DATABASES = {
+    'default': dj_database_url.parse(env('DATABASE_URL'))
+}
+
 
 LOGIN_URL = 'login'
 
