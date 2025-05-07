@@ -7,7 +7,11 @@ from django.contrib.auth.models import User
 from django.db.models.functions import Lower
 from django.core.cache import cache
 from django.db import connection
+from django.core.management import call_command
 
+def fetch_igdb_games_view(request):
+    call_command('fetch_igdb_games')
+    return JsonResponse({'status': 'OK'})
 def home(request):
     sort = request.GET.get('sort', 'recent')
 

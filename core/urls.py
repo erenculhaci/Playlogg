@@ -6,4 +6,6 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('search/', views.search, name='search'),
     path('search-studios/', views.search_studios, name='search_studios'),
+    path('fetch-games/', views.fetch_igdb_games_view),
+
 ]
