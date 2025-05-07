@@ -131,8 +131,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATICFILES_STORAGE = "common.storage.StaticStorage"
-
 # AWS S3 Configuration
 AWS_ACCOUNT_ID = env('AWS_ACCOUNT_ID')
 AWS_IAM_USER_NAME = env('AWS_IAM_USER_NAME')
@@ -152,6 +150,11 @@ AWS_LOCATION = 'media'  # Default location for files
 DEFAULT_FILE_STORAGE = 'common.storage.MediaStorage'
 MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
 MEDIA_ROOT = ''
+
+# Static files (CSS, JavaScript, Images)
+STATICFILES_STORAGE = "common.storage.StaticStorage"
+STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/'
+STATIC_ROOT = ''
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
