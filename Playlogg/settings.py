@@ -131,10 +131,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [
-    BASE_DIR / 'static'
-]
+STATICFILES_STORAGE = "common.storage.StaticStorage"
 
 # AWS S3 Configuration
 AWS_ACCOUNT_ID = env('AWS_ACCOUNT_ID')
@@ -152,7 +149,7 @@ AWS_S3_FILE_OVERWRITE = False  # Don't overwrite files with the same name
 AWS_LOCATION = 'media'  # Default location for files
 
 # Media files configuration (using our custom storage)
-DEFAULT_FILE_STORAGE = 'common.storage.MediaStorage'  # Update this to match your project structure
+DEFAULT_FILE_STORAGE = 'common.storage.MediaStorage'
 MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
 MEDIA_ROOT = ''
 
