@@ -2,8 +2,11 @@ import requests
 import os
 from datetime import datetime
 from django.conf import settings
+from django.core.files.base import ContentFile
 from .models import Game
 from django.contrib.auth import get_user_model
+import boto3
+from botocore.exceptions import ClientError
 
 # IGDB API Credentials
 TWITCH_CLIENT_ID = settings.TWITCH_CLIENT_ID
@@ -49,6 +52,78 @@ def sanitize_filename(filename):
 
     return filename
 
+
+def upload_image_to_s3(image_content, image_name):
+    """
+    Upload image content directly to S3 bucket.
+
+    Args:
+        image_content (bytes): Image content as bytes
+        image_name (str): Name for the image file
+
+    Returns:
+        str: S3 key path if successful, None if failed
+    """
+    try:
+        # Initialize S3 client
+        s3_client = boto3.client(
+            's3',
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            region_name=settings.AWS_S3_REGION_NAME
+        )
+
+        # Create the S3 key path
+        s3_key = f"media/game_images/{image_name}"
+
+        # Upload the image
+        s3_client.put_object(
+            Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+            Key=s3_key,
+            Body=image_content,
+            ContentType='image/jpeg',
+            CacheControl='max-age=86400'
+        )
+
+        print(f"Successfully uploaded image to S3: {s3_key}")
+        return f"game_images/{image_name}"  # Return the path as stored in the model
+
+    except ClientError as e:
+        print(f"Error uploading image to S3: {e}")
+        return None
+    except Exception as e:
+        print(f"Unexpected error uploading image: {e}")
+        return None
+
+
+def check_image_exists_in_s3(image_name):
+    """
+    Check if an image already exists in S3 bucket.
+
+    Args:
+        image_name (str): Name of the image file
+
+    Returns:
+        bool: True if image exists, False otherwise
+    """
+    try:
+        s3_client = boto3.client(
+            's3',
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            region_name=settings.AWS_S3_REGION_NAME
+        )
+
+        s3_key = f"media/game_images/{image_name}"
+        s3_client.head_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=s3_key)
+        return True
+    except ClientError:
+        return False
+    except Exception as e:
+        print(f"Error checking image existence: {e}")
+        return False
+
+
 # Fetch all games from IGDB in batches
 def fetch_all_games_from_igdb():
     User = get_user_model()
@@ -60,7 +135,7 @@ def fetch_all_games_from_igdb():
     }
 
     offset = 0
-    limit = 500  # IGDB allows a max of 500, but 50 is safer
+    limit = 500  # IGDB allows a max of 500
     total_games_added = 0
 
     while True:
@@ -94,19 +169,43 @@ def fetch_all_games_from_igdb():
             genres = [genre["name"] for genre in data.get("genres", [])]
             platforms = [platform["name"] for platform in data.get("platforms", [])]
 
-            # Handle image downloading
-            image_url = data.get("cover", {}).get("url", None)
+            # Handle image downloading and uploading to S3
             image_path = None
+            image_url = data.get("cover", {}).get("url", None)
+
             if image_url:
-                image_url = f"https:{image_url.replace('t_thumb', 't_cover_big')}"  # Ensure valid URL
-                image_response = requests.get(image_url)
-                if image_response.status_code == 200:
-                    image_name = sanitize_filename(f"{name.replace(' ', '_').replace('/', '_').lower()}.jpg")
+                # Ensure the URL is properly formatted
+                if not image_url.startswith('http'):
+                    image_url = f"https:{image_url}"
+
+                # Get higher quality image
+                image_url = image_url.replace('t_thumb', 't_cover_big')
+
+                # Create sanitized filename
+                image_name = sanitize_filename(f"{name.replace(' ', '_').replace('/', '_').lower()}.jpg")
+
+                # Check if image already exists in S3 to avoid duplicate uploads
+                if not check_image_exists_in_s3(image_name):
+                    try:
+                        # Download the image
+                        image_response = requests.get(image_url, timeout=30)
+                        if image_response.status_code == 200:
+                            # Upload directly to S3
+                            image_path = upload_image_to_s3(image_response.content, image_name)
+                            if image_path:
+                                print(f"Successfully processed image for {name}")
+                            else:
+                                print(f"Failed to upload image for {name}")
+                        else:
+                            print(f"Failed to download image for {name}: {image_response.status_code}")
+                    except requests.exceptions.RequestException as e:
+                        print(f"Error downloading image for {name}: {e}")
+                    except Exception as e:
+                        print(f"Unexpected error processing image for {name}: {e}")
+                else:
+                    # Image already exists, use existing path
                     image_path = f"game_images/{image_name}"
-                    full_path = os.path.join(settings.MEDIA_ROOT, image_path)
-                    os.makedirs(os.path.dirname(full_path), exist_ok=True)
-                    with open(full_path, "wb") as img_file:
-                        img_file.write(image_response.content)
+                    print(f"Image already exists for {name}")
 
             try:
                 # Save game in the database
@@ -122,6 +221,13 @@ def fetch_all_games_from_igdb():
                         "added_by": system_user
                     }
                 )
+
+                # If game exists but doesn't have an image, update it
+                if not created and not game.image and image_path:
+                    game.image = image_path
+                    game.save()
+                    print(f"Updated existing game {name} with new image")
+
             except Exception as e:
                 print(f"Error saving game {name}: {e}")
                 print(f"Data: {data}")
