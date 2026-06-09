@@ -1,4 +1,4 @@
-# Playlogg 🎮 [https://playlogg.onrender.com](https://playlogg.onrender.com)
+# Playlogg 🎮 
 
 [![Django](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white)](https://www.djangoproject.com/)
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML)
@@ -13,7 +13,7 @@ Playlogg is a comprehensive game discovery and logging platform - think IMDb or 
 
 ![playlogg](https://github.com/user-attachments/assets/e0dc4d46-4ebb-4322-9cb1-b0d906fd7e5f)
 
-
+[https://playlogg.onrender.com](https://playlogg.onrender.com)
 ## 🌟 Features
 
 - **User Authentication System**
